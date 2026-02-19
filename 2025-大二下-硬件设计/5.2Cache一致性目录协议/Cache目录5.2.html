@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cache一致性目录协议仿真</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .control-panel {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border: 2px solid #e9ecef;
+        }
+        
+        .input-group {
+            display: inline-block;
+            margin: 10px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #495057;
+        }
+        
+        select, input, button {
+            padding: 8px 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        button {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .cpu-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .cpu-node {
+            border: 3px solid #007bff;
+            border-radius: 10px;
+            padding: 15px;
+            background: linear-gradient(145deg, #ffffff, #f1f3f4);
+        }
+        
+        .cpu-title {
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 15px;
+            color: #007bff;
+            font-size: 18px;
+        }
+        
+        .cache-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 5px;
+            margin-bottom: 15px;
+        }
+        
+        .cache-block {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: center;
+            font-size: 12px;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+        
+        .cache-block.invalid {
+            background-color: #f8d7da;
+            border-color: #dc3545;
+        }
+        
+        .cache-block.shared {
+            background-color: #d4edda;
+            border-color: #28a745;
+        }
+        
+        .cache-block.modified {
+            background-color: #fff3cd;
+            border-color: #ffc107;
+        }
+        
+        .memory-section {
+            background: #e9ecef;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .memory-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 5px;
+        }
+        
+        .memory-block {
+            border: 1px solid #6c757d;
+            padding: 10px;
+            text-align: center;
+            font-size: 12px;
+            background: white;
+            border-radius: 3px;
+        }
+        
+        .directory-info {
+            margin-top: 10px;
+            font-size: 11px;
+            color: #6c757d;
+        }
+        
+        .log-section {
+            background: #343a40;
+            color: #ffffff;
+            padding: 15px;
+            border-radius: 10px;
+            height: 200px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 3px 0;
+        }
+        
+        .highlight {
+            animation: highlight 1s ease-in-out;
+        }
+        
+        @keyframes highlight {
+            0% { background-color: #ffeb3b; }
+            100% { background-color: transparent; }
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .stat-item {
+            background: linear-gradient(45deg, #17a2b8, #6f42c1);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🖥️ Cache一致性目录协议仿真系统</h1>
+        
+        <div class="control-panel">
+            <div class="input-group">
+                <label for="cpuSelect">选择CPU:</label>
+                <select id="cpuSelect">
+                    <option value="0">CPU00</option>
+                    <option value="1">CPU01</option>
+                    <option value="2">CPU10</option>
+                    <option value="3">CPU11</option>
+                </select>
+            </div>
+            
+            <div class="input-group">
+                <label for="operation">操作类型:</label>
+                <select id="operation">
+                    <option value="read">读取 (Read)</option>
+                    <option value="write">写入 (Write)</option>
+                </select>
+            </div>
+            
+            <div class="input-group">
+                <label for="address">内存地址 (0-31):</label>
+                <input type="number" id="address" min="0" max="31" value="0">
+            </div>
+            
+            <div class="input-group">
+                <label for="data">数据值 (写入时):</label>
+                <input type="text" id="data" value="0x1234" maxlength="8">
+            </div>
+            
+            <button onclick="executeOperation()">🚀 执行操作</button>
+            <button onclick="resetSystem()">🔄 重置系统</button>
+            <button onclick="runDemo()">📋 演示案例</button>
+        </div>
+        
+        <div class="cpu-grid">
+            <div class="cpu-node">
+                <div class="cpu-title">CPU00 节点</div>
+                <div class="cache-grid" id="cache0"></div>
+                <div>私有内存: 4MB (地址 0-3)</div>
+            </div>
+            
+            <div class="cpu-node">
+                <div class="cpu-title">CPU01 节点</div>
+                <div class="cache-grid" id="cache1"></div>
+                <div>私有内存: 4MB (地址 4-7)</div>
+            </div>
+            
+            <div class="cpu-node">
+                <div class="cpu-title">CPU10 节点</div>
+                <div class="cache-grid" id="cache2"></div>
+                <div>私有内存: 4MB (地址 8-11)</div>
+            </div>
+            
+            <div class="cpu-node">
+                <div class="cpu-title">CPU11 节点</div>
+                <div class="cache-grid" id="cache3"></div>
+                <div>私有内存: 4MB (地址 12-15)</div>
+            </div>
+        </div>
+        
+        <div class="memory-section">
+            <h3>📚 全局内存目录状态 (32个内存块)</h3>
+            <div class="memory-grid" id="memoryGrid"></div>
+        </div>
+        
+        <div class="log-section">
+            <div><strong>📜 操作日志：</strong></div>
+            <div id="logArea"></div>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-value" id="readCount">0</div>
+                <div class="stat-label">读取次数</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="writeCount">0</div>
+                <div class="stat-label">写入次数</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="hitCount">0</div>
+                <div class="stat-label">Cache命中</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="missCount">0</div>
+                <div class="stat-label">Cache缺失</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 系统状态
+        const system = {
+            caches: Array(4).fill().map(() => Array(16).fill().map(() => ({
+                valid: false,
+                tag: -1,
+                state: 'I', // I=Invalid, S=Shared, M=Modified
+                data: '0x0000'
+            }))),
+            memory: Array(32).fill().map((_, i) => ({
+                data: `0x${(i * 0x1000).toString(16).padStart(4, '0')}`,
+                directory: [] // 哪些CPU缓存了这个块
+            })),
+            stats: { reads: 0, writes: 0, hits: 0, misses: 0 }
+        };
+
+        function initializeDisplay() {
+            // 初始化Cache显示
+            for (let cpu = 0; cpu < 4; cpu++) {
+                const cacheContainer = document.getElementById(`cache${cpu}`);
+                cacheContainer.innerHTML = '';
+                for (let block = 0; block < 16; block++) {
+                    const blockDiv = document.createElement('div');
+                    blockDiv.className = 'cache-block invalid';
+                    blockDiv.id = `cache${cpu}_block${block}`;
+                    blockDiv.innerHTML = `
+                        <div>块${block}</div>
+                        <div>标记: -</div>
+                        <div>状态: I</div>
+                        <div>数据: -</div>
+                    `;
+                    cacheContainer.appendChild(blockDiv);
+                }
+            }
+
+            // 初始化内存显示
+            const memoryContainer = document.getElementById('memoryGrid');
+            memoryContainer.innerHTML = '';
+            for (let i = 0; i < 32; i++) {
+                const memDiv = document.createElement('div');
+                memDiv.className = 'memory-block';
+                memDiv.id = `memory_block${i}`;
+                memDiv.innerHTML = `
+                    <div><strong>内存${i}</strong></div>
+                    <div>${system.memory[i].data}</div>
+                    <div class="directory-info">目录: 空</div>
+                `;
+                memoryContainer.appendChild(memDiv);
+            }
+
+            updateDisplay();
+            logMessage("系统初始化完成 ✅");
+        }
+
+        function updateDisplay() {
+            // 更新Cache显示
+            for (let cpu = 0; cpu < 4; cpu++) {
+                for (let block = 0; block < 16; block++) {
+                    const cache = system.caches[cpu][block];
+                    const blockDiv = document.getElementById(`cache${cpu}_block${block}`);
+                    
+                    let stateClass = 'invalid';
+                    if (cache.state === 'S') stateClass = 'shared';
+                    else if (cache.state === 'M') stateClass = 'modified';
+                    
+                    blockDiv.className = `cache-block ${stateClass}`;
+                    blockDiv.innerHTML = `
+                        <div>块${block}</div>
+                        <div>标记: ${cache.valid ? cache.tag : '-'}</div>
+                        <div>状态: ${cache.state}</div>
+                        <div>数据: ${cache.valid ? cache.data : '-'}</div>
+                    `;
+                }
+            }
+
+            // 更新内存显示
+            for (let i = 0; i < 32; i++) {
+                const memDiv = document.getElementById(`memory_block${i}`);
+                const directory = system.memory[i].directory;
+                const dirText = directory.length > 0 ? 
+                    `CPU: ${directory.map(cpu => `0${Math.floor(cpu/2)}${cpu%2}`).join(',')}` : '空';
+                
+                memDiv.innerHTML = `
+                    <div><strong>内存${i}</strong></div>
+                    <div>${system.memory[i].data}</div>
+                    <div class="directory-info">目录: ${dirText}</div>
+                `;
+            }
+
+            // 更新统计
+            document.getElementById('readCount').textContent = system.stats.reads;
+            document.getElementById('writeCount').textContent = system.stats.writes;
+            document.getElementById('hitCount').textContent = system.stats.hits;
+            document.getElementById('missCount').textContent = system.stats.misses;
+        }
+
+        function logMessage(message) {
+            const logArea = document.getElementById('logArea');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logArea.appendChild(entry);
+            logArea.scrollTop = logArea.scrollHeight;
+        }
+
+        // 检查是否有其他CPU持有Modified版本，如果有则要求写回
+        function checkAndInvalidateModified(address, requestingCpu) {
+            const cacheIndex = address % 16;
+            const tag = Math.floor(address / 16);
+            
+            for (let cpu = 0; cpu < 4; cpu++) {
+                if (cpu === requestingCpu) continue;
+                
+                const cache = system.caches[cpu][cacheIndex];
+                if (cache.valid && cache.tag === tag && cache.state === 'M') {
+                    // 找到Modified副本，写回内存
+                    system.memory[address].data = cache.data;
+                    logMessage(`CPU${Math.floor(cpu/2)}${cpu%2}的Modified数据写回内存: ${cache.data}`);
+                    
+                    // 设为无效
+                    cache.valid = false;
+                    cache.state = 'I';
+                    
+                    // 更新目录
+                    const directory = system.memory[address].directory;
+                    const index = directory.indexOf(cpu);
+                    if (index !== -1) {
+                        directory.splice(index, 1);
+                    }
+                    
+                    logMessage(`CPU${Math.floor(cpu/2)}${cpu%2}的Cache块设为无效`);
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // 清理Cache块的目录信息
+        function cleanupDirectory(cpu, cacheIndex) {
+            const cache = system.caches[cpu][cacheIndex];
+            if (cache.valid && cache.tag !== -1) {
+                const oldAddress = cache.tag * 16 + cacheIndex;
+                const directory = system.memory[oldAddress].directory;
+                const cpuIndex = directory.indexOf(cpu);
+                if (cpuIndex !== -1) {
+                    directory.splice(cpuIndex, 1);
+                    logMessage(`从内存${oldAddress}的目录中移除CPU${Math.floor(cpu/2)}${cpu%2}`);
+                }
+            }
+        }
+
+        function executeOperation() {
+            const cpu = parseInt(document.getElementById('cpuSelect').value);
+            const operation = document.getElementById('operation').value;
+            const address = parseInt(document.getElementById('address').value);
+            const data = document.getElementById('data').value;
+
+            if (address < 0 || address > 31) {
+                alert('地址必须在0-31之间！');
+                return;
+            }
+
+            if (operation === 'read') {
+                handleRead(cpu, address);
+            } else {
+                handleWrite(cpu, address, data);
+            }
+
+            updateDisplay();
+        }
+
+        function handleRead(cpu, address) {
+            system.stats.reads++;
+            const cacheIndex = address % 16;
+            const tag = Math.floor(address / 16);
+            const cache = system.caches[cpu][cacheIndex];
+
+            logMessage(`CPU${Math.floor(cpu/2)}${cpu%2} 请求读取地址 ${address}`);
+
+            // 检查Cache命中
+            if (cache.valid && cache.tag === tag) {
+                system.stats.hits++;
+                logMessage(`Cache命中！读取到数据: ${cache.data}`);
+                highlightBlock(`cache${cpu}_block${cacheIndex}`);
+                return;
+            }
+
+            // Cache缺失
+            system.stats.misses++;
+            logMessage(`Cache缺失，需要从内存加载数据`);
+
+            // 如果Cache块有效，需要处理替换
+            if (cache.valid) {
+                // 如果已修改，需要写回
+                if (cache.state === 'M') {
+                    const oldAddress = cache.tag * 16 + cacheIndex;
+                    system.memory[oldAddress].data = cache.data;
+                    logMessage(`写回脏数据到内存地址 ${oldAddress}: ${cache.data}`);
+                }
+                // 清理旧地址的目录信息
+                cleanupDirectory(cpu, cacheIndex);
+            }
+
+            // 检查是否有其他CPU持有Modified版本
+            checkAndInvalidateModified(address, cpu);
+
+            // 从内存加载数据
+            cache.valid = true;
+            cache.tag = tag;
+            cache.state = 'S';
+            cache.data = system.memory[address].data;
+
+            // 更新目录
+            if (!system.memory[address].directory.includes(cpu)) {
+                system.memory[address].directory.push(cpu);
+            }
+
+            logMessage(`从内存加载数据到Cache: ${cache.data}`);
+            highlightBlock(`cache${cpu}_block${cacheIndex}`);
+            highlightBlock(`memory_block${address}`);
+        }
+
+        function handleWrite(cpu, address, data) {
+            system.stats.writes++;
+            const cacheIndex = address % 16;
+            const tag = Math.floor(address / 16);
+            const cache = system.caches[cpu][cacheIndex];
+
+            logMessage(`CPU${Math.floor(cpu/2)}${cpu%2} 请求写入地址 ${address}, 数据: ${data}`);
+
+            // 检查并处理其他CPU的Modified副本
+            checkAndInvalidateModified(address, cpu);
+
+            // 使其他Cache中的副本无效（写作废协议）
+            const directory = [...system.memory[address].directory]; // 使用副本避免修改时的问题
+            for (const otherCpu of directory) {
+                if (otherCpu !== cpu) {
+                    const otherCache = system.caches[otherCpu][cacheIndex];
+                    if (otherCache.valid && otherCache.tag === tag) {
+                        otherCache.valid = false;
+                        otherCache.state = 'I';
+                        logMessage(`使CPU${Math.floor(otherCpu/2)}${otherCpu%2}的Cache块无效`);
+                    }
+                }
+            }
+
+            // 如果Cache块无效或标记不匹配，需要先加载
+            if (!cache.valid || cache.tag !== tag) {
+                system.stats.misses++;
+                
+                // 如果当前块有效，需要处理替换
+                if (cache.valid) {
+                    // 如果已修改，写回内存
+                    if (cache.state === 'M') {
+                        const oldAddress = cache.tag * 16 + cacheIndex;
+                        system.memory[oldAddress].data = cache.data;
+                        logMessage(`写回脏数据到内存地址 ${oldAddress}: ${cache.data}`);
+                    }
+                    // 清理旧地址的目录信息
+                    cleanupDirectory(cpu, cacheIndex);
+                }
+
+                // 从内存加载（获取最新数据）
+                cache.valid = true;
+                cache.tag = tag;
+                cache.data = system.memory[address].data;
+                logMessage(`从内存加载数据到Cache进行写入: ${cache.data}`);
+            } else {
+                system.stats.hits++;
+                logMessage(`Cache命中，直接写入`);
+            }
+
+            // 执行写入
+            cache.data = data;
+            cache.state = 'M';
+
+            // 更新目录（只有当前CPU持有）
+            system.memory[address].directory = [cpu];
+
+            // 立即写回到内存（写直通策略，确保一致性）
+            system.memory[address].data = data;
+
+            logMessage(`写入完成，数据: ${data}，Cache状态设为Modified，同时更新内存`);
+            highlightBlock(`cache${cpu}_block${cacheIndex}`);
+            highlightBlock(`memory_block${address}`);
+        }
+
+        function highlightBlock(elementId) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.classList.add('highlight');
+                setTimeout(() => element.classList.remove('highlight'), 1000);
+            }
+        }
+
+        function resetSystem() {
+            // 重置所有状态
+            for (let cpu = 0; cpu < 4; cpu++) {
+                for (let block = 0; block < 16; block++) {
+                    system.caches[cpu][block] = {
+                        valid: false,
+                        tag: -1,
+                        state: 'I',
+                        data: '0x0000'
+                    };
+                }
+            }
+
+            for (let i = 0; i < 32; i++) {
+                system.memory[i].directory = [];
+                system.memory[i].data = `0x${(i * 0x1000).toString(16).padStart(4, '0')}`;
+            }
+
+            system.stats = { reads: 0, writes: 0, hits: 0, misses: 0 };
+
+            updateDisplay();
+            document.getElementById('logArea').innerHTML = '';
+            logMessage("系统已重置 🔄");
+        }
+
+        function runDemo() {
+            resetSystem();
+            logMessage("开始演示Cache一致性协议...");
+            
+            setTimeout(() => {
+                document.getElementById('cpuSelect').value = '0';
+                document.getElementById('operation').value = 'write';
+                document.getElementById('address').value = '0';
+                document.getElementById('data').value = '0x1234';
+                executeOperation();
+            }, 1000);
+
+            setTimeout(() => {
+                document.getElementById('cpuSelect').value = '1';
+                document.getElementById('operation').value = 'read';
+                document.getElementById('address').value = '0';
+                executeOperation();
+            }, 2500);
+
+            setTimeout(() => {
+                document.getElementById('cpuSelect').value = '2';
+                document.getElementById('operation').value = 'write';
+                document.getElementById('address').value = '0';
+                document.getElementById('data').value = '0xABCD';
+                executeOperation();
+            }, 4000);
+
+            setTimeout(() => {
+                document.getElementById('cpuSelect').value = '3';
+                document.getElementById('operation').value = 'read';
+                document.getElementById('address').value = '0';
+                executeOperation();
+            }, 5500);
+        }
+
+        // 页面加载时初始化
+        window.onload = initializeDisplay;
+    </script>
+</body>
+</html>

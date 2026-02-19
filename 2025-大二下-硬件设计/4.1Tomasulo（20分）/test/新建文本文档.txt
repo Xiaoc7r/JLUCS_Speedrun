@@ -1,0 +1,146 @@
+以下是一个基本的 ModelSim 测试项目结构，用于测试 Verilog 模块功能。这个项目包含一个简单的被测模块 (DUT) 和对应的测试平台 (testbench)。
+项目结构
+plaintext
+my_verilog_project/
+├── src/                # 源代码目录
+│   └── counter.v       # 示例被测模块(计数器)
+├── tb/                 # 测试平台目录
+│   └── tb_counter.v    # 计数器测试平台
+├── vsim.do             # ModelSim脚本文件
+└── README.txt          # 项目说明
+1. 被测模块: counter.v
+verilog
+// src/counter.v
+module counter #(
+    parameter WIDTH = 8
+)(
+    input wire clk,
+    input wire rst_n,
+    output reg [WIDTH-1:0] count
+);
+
+always @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+        count <= {WIDTH{1'b0}};
+    end else begin
+        count <= count + 1'b1;
+    end
+end
+
+endmodule
+2. 测试平台: tb_counter.v
+verilog
+// tb/tb_counter.v
+`timescale 1ns/1ps
+
+module tb_counter();
+
+    // 参数定义
+    parameter WIDTH = 8;
+    parameter CLK_PERIOD = 10; // 10ns时钟周期
+    
+    // 信号声明
+    reg clk;
+    reg rst_n;
+    wire [WIDTH-1:0] count;
+    
+    // 实例化被测模块
+    counter #(
+        .WIDTH(WIDTH)
+    ) uut (
+        .clk(clk),
+        .rst_n(rst_n),
+        .count(count)
+    );
+    
+    // 生成时钟
+    initial begin
+        clk = 0;
+        forever #(CLK_PERIOD/2) clk = ~clk;
+    end
+    
+    // 测试序列
+    initial begin
+        // 初始化信号
+        rst_n = 0;
+        #20;
+        
+        // 释放复位
+        rst_n = 1;
+        #200;
+        
+        // 结束仿真
+        $finish;
+    end
+    
+    // 自动验证
+    integer cycle_count = 0;
+    always @(posedge clk) begin
+        if (rst_n) begin
+            cycle_count <= cycle_count + 1;
+            if (count !== cycle_count) begin
+                $display("Error: count = %d, expected = %d at cycle %0t", 
+                         count, cycle_count, $time);
+                $finish;
+            end
+        end
+    end
+    
+    // 波形记录
+    initial begin
+        $dumpfile("waveforms.vcd");
+        $dumpvars(0, tb_counter);
+    end
+
+endmodule
+3. ModelSim 脚本: vsim.do
+tcl
+# vsim.do
+# ModelSim仿真脚本
+
+# 创建工作库
+vlib work
+vmap work work
+
+# 编译源代码
+vlog src/counter.v
+vlog tb/tb_counter.v
+
+# 启动仿真
+vsim -novopt tb_counter
+
+# 添加波形
+add wave clk
+add wave rst_n
+add wave count
+
+# 运行仿真
+run 250ns
+如何使用
+创建上述文件结构和内容
+打开 ModelSim 并进入项目目录
+执行以下命令：
+plaintext
+do vsim.do
+
+仿真完成后，可以查看波形文件waveforms.vcd
+这个测试平台实现了：
+基本的时钟生成
+复位控制
+自动验证逻辑
+波形记录
+你可以根据实际需要修改被测模块和测试平台，添加更多测试场景和验证逻辑。
+这几个文件创建的时候应分别选择什么文件（vhdl,verilog,systemverilog....）
+在创建这些文件时，应该根据文件内容选择正确的语言类型。具体来说：
+counter.v - 选择 Verilog 类型
+这是一个标准的 Verilog 模块，使用的是 Verilog-2001/2005 语法。
+tb_counter.v - 选择 SystemVerilog 类型
+虽然测试平台使用了部分 SystemVerilog 特性（如$display和$finish），但整体仍兼容 Verilog 语法。在 ModelSim 中，可以将其视为 Verilog 文件，但建议选择 SystemVerilog 以支持更多高级特性。
+vsim.do - 选择 Tcl 脚本 类型
+这是 ModelSim 的 Tcl 命令脚本文件，用于自动化仿真流程。
+语言选择说明：
+Verilog (.v)：标准硬件描述语言，适用于模块设计
+SystemVerilog (.sv)：Verilog 的扩展，增加了测试平台和验证功能
+VHDL (.vhd/.vhdl)：另一种硬件描述语言，这里未使用
+Tcl 脚本 (.do)：ModelSim 的命令脚本语言
+如果 ModelSim 没有明确区分 Verilog 和 SystemVerilog 类型，选择 SystemVerilog 通常是更安全的选项，因为它向后兼容 Verilog。

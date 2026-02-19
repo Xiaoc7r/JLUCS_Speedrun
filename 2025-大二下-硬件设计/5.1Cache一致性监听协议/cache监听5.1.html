@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cache一致性监听协议仿真器</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(45deg, #4facfe 0%, #00f2fe 100%);
+            border-radius: 10px;
+            color: white;
+        }
+
+        .control-panel {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .input-group label {
+            font-weight: bold;
+            color: #555;
+        }
+
+        select, input, button {
+            padding: 8px 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        button {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        .system-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .cpu-section {
+            background: #fff;
+            border: 3px solid #4facfe;
+            border-radius: 10px;
+            padding: 15px;
+        }
+
+        .cpu-title {
+            background: #4facfe;
+            color: white;
+            padding: 10px;
+            margin: -15px -15px 15px -15px;
+            border-radius: 7px 7px 0 0;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .cache-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .cache-block {
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            padding: 8px;
+            text-align: center;
+            font-size: 11px;
+            background: white;
+            transition: all 0.3s;
+        }
+
+        .cache-block.invalid {
+            background: #f8f9fa;
+            border-color: #dee2e6;
+            color: #6c757d;
+        }
+
+        .cache-block.shared {
+            background: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+        }
+
+        .cache-block.modified {
+            background: #f8d7da;
+            border-color: #dc3545;
+            color: #721c24;
+        }
+
+        .cache-block.exclusive {
+            background: #fff3cd;
+            border-color: #ffc107;
+            color: #856404;
+        }
+
+        .memory-section {
+            background: #fff;
+            border: 3px solid #28a745;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+
+        .memory-title {
+            background: #28a745;
+            color: white;
+            padding: 10px;
+            margin: -15px -15px 15px -15px;
+            border-radius: 7px 7px 0 0;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .memory-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 5px;
+            margin-top: 10px;
+        }
+
+        .memory-block {
+            background: #e9ecef;
+            border: 1px solid #adb5bd;
+            border-radius: 3px;
+            padding: 5px;
+            text-align: center;
+            font-size: 10px;
+        }
+
+        .log-section {
+            background: #f8f9fa;
+            border: 2px solid #6c757d;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .log-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #495057;
+        }
+
+        .log-entry {
+            padding: 5px;
+            margin: 3px 0;
+            border-radius: 3px;
+            font-size: 13px;
+        }
+
+        .log-read {
+            background: #cce5ff;
+            border-left: 4px solid #007bff;
+        }
+
+        .log-write {
+            background: #ffe6e6;
+            border-left: 4px solid #dc3545;
+        }
+
+        .log-invalidate {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+
+        .animation {
+            animation: pulse 0.5s;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Cache一致性监听协议仿真器</h1>
+            <p>基于写作废协议和写回法的多处理机Cache一致性演示</p>
+        </div>
+
+        <div class="control-panel">
+            <div class="input-group">
+                <label>选择CPU:</label>
+                <select id="cpuSelect">
+                    <option value="CPU00">CPU00</option>
+                    <option value="CPU01">CPU01</option>
+                    <option value="CPU10">CPU10</option>
+                    <option value="CPU11">CPU11</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>操作类型:</label>
+                <select id="operationType">
+                    <option value="read">读取 (Read)</option>
+                    <option value="write">写入 (Write)</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>内存地址 (十六进制):</label>
+                <input type="text" id="memoryAddress" placeholder="例如: 0x1000" value="0x1000">
+            </div>
+            <div class="input-group">
+                <label>数据值 (仅写入):</label>
+                <input type="text" id="dataValue" placeholder="例如: 0xABCD" value="0xABCD">
+            </div>
+            <button onclick="executeOperation()">执行操作</button>
+            <button onclick="resetSystem()">重置系统</button>
+        </div>
+
+        <div class="system-layout">
+            <div class="cpu-section">
+                <div class="cpu-title">CPU00 Cache (直接映射)</div>
+                <div class="cache-grid" id="cache-CPU00"></div>
+            </div>
+            <div class="cpu-section">
+                <div class="cpu-title">CPU01 Cache (直接映射)</div>
+                <div class="cache-grid" id="cache-CPU01"></div>
+            </div>
+            <div class="cpu-section">
+                <div class="cpu-title">CPU10 Cache (直接映射)</div>
+                <div class="cache-grid" id="cache-CPU10"></div>
+            </div>
+            <div class="cpu-section">
+                <div class="cpu-title">CPU11 Cache (直接映射)</div>
+                <div class="cache-grid" id="cache-CPU11"></div>
+            </div>
+        </div>
+
+        <div class="memory-section">
+            <div class="memory-title">主存储器 (4个节点，高位交叉编址)</div>
+            <div class="memory-grid" id="memory-grid"></div>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="totalOps">0</div>
+                <div class="stat-label">总操作数</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="cacheHits">0</div>
+                <div class="stat-label">Cache命中</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="cacheMisses">0</div>
+                <div class="stat-label">Cache缺失</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="invalidations">0</div>
+                <div class="stat-label">作废操作</div>
+            </div>
+        </div>
+
+        <div class="log-section">
+            <div class="log-title">操作日志:</div>
+            <div id="operation-log"></div>
+        </div>
+    </div>
+
+    <script>
+        // 系统配置
+        const CONFIG = {
+            CACHE_BLOCKS: 16,
+            BLOCK_SIZE: 16,
+            MEMORY_NODES: 4,
+            MEMORY_SIZE_PER_NODE: 4 * 1024 * 1024, // 4MB
+            CPUS: ['CPU00', 'CPU01', 'CPU10', 'CPU11']
+        };
+
+        // Cache状态枚举
+        const CacheState = {
+            INVALID: 'I',
+            SHARED: 'S', 
+            MODIFIED: 'M',
+            EXCLUSIVE: 'E'
+        };
+
+        // 系统状态
+        let systemState = {
+            caches: {},
+            memory: {},
+            stats: {
+                totalOps: 0,
+                cacheHits: 0,
+                cacheMisses: 0,
+                invalidations: 0
+            }
+        };
+
+        // 初始化系统
+        function initSystem() {
+            // 初始化每个CPU的Cache
+            CONFIG.CPUS.forEach(cpu => {
+                systemState.caches[cpu] = Array(CONFIG.CACHE_BLOCKS).fill(null).map(() => ({
+                    valid: false,
+                    tag: 0,
+                    state: CacheState.INVALID,
+                    data: 0,
+                    dirty: false
+                }));
+            });
+
+            // 初始化内存
+            for (let i = 0; i < 256; i++) {
+                systemState.memory[i] = {
+                    data: Math.floor(Math.random() * 0xFFFF),
+                    node: i % CONFIG.MEMORY_NODES
+                };
+            }
+
+            renderSystem();
+        }
+
+        // 地址映射函数
+        function getBlockIndex(address) {
+            return (address >> 4) % CONFIG.CACHE_BLOCKS;
+        }
+
+        function getTag(address) {
+            return address >> 8;
+        }
+
+        function getMemoryIndex(address) {
+            return (address >> 4) % 256;
+        }
+
+        // 高位交叉编址
+        function getMemoryNode(address) {
+            return (address >> 20) % CONFIG.MEMORY_NODES;
+        }
+
+        // 查找Cache块
+        function findCacheBlock(cpu, address) {
+            const blockIndex = getBlockIndex(address);
+            const tag = getTag(address);
+            const block = systemState.caches[cpu][blockIndex];
+            
+            if (block.valid && block.tag === tag) {
+                return { found: true, block, blockIndex };
+            }
+            return { found: false, block, blockIndex };
+        }
+
+        // 监听协议 - 作废其他CPU的Cache
+        function invalidateOtherCaches(currentCpu, address) {
+            let invalidatedCount = 0;
+            CONFIG.CPUS.forEach(cpu => {
+                if (cpu !== currentCpu) {
+                    const result = findCacheBlock(cpu, address);
+                    if (result.found && result.block.state !== CacheState.INVALID) {
+                        // 如果是Modified状态，需要写回
+                        if (result.block.state === CacheState.MODIFIED) {
+                            writeBackToMemory(cpu, address, result.block.data);
+                            addLog(`${cpu} 写回数据到内存 地址:0x${address.toString(16)}`, 'log-write');
+                        }
+                        result.block.state = CacheState.INVALID;
+                        result.block.valid = false;
+                        invalidatedCount++;
+                        addLog(`${cpu} Cache块被作废 地址:0x${address.toString(16)}`, 'log-invalidate');
+                    }
+                }
+            });
+            return invalidatedCount;
+        }
+
+        // 写回内存
+        function writeBackToMemory(cpu, address, data) {
+            const memIndex = getMemoryIndex(address);
+            systemState.memory[memIndex].data = data;
+        }
+
+        // 从内存加载
+        function loadFromMemory(address) {
+            const memIndex = getMemoryIndex(address);
+            return systemState.memory[memIndex].data;
+        }
+
+        // 检查其他Cache是否有数据（就近原则）
+        function checkOtherCaches(currentCpu, address) {
+            for (let cpu of CONFIG.CPUS) {
+                if (cpu !== currentCpu) {
+                    const result = findCacheBlock(cpu, address);
+                    if (result.found && (result.block.state === CacheState.SHARED || 
+                                       result.block.state === CacheState.EXCLUSIVE ||
+                                       result.block.state === CacheState.MODIFIED)) {
+                        return { found: true, data: result.block.data, sourceCpu: cpu };
+                    }
+                }
+            }
+            return { found: false };
+        }
+
+        // 执行读操作
+        function performRead(cpu, address) {
+            const result = findCacheBlock(cpu, address);
+            
+            if (result.found && result.block.state !== CacheState.INVALID) {
+                // Cache命中
+                systemState.stats.cacheHits++;
+                addLog(`${cpu} 读命中 地址:0x${address.toString(16)} 数据:0x${result.block.data.toString(16)}`, 'log-read');
+                return result.block.data;
+            } else {
+                // Cache缺失
+                systemState.stats.cacheMisses++;
+                
+                // 检查其他Cache（就近原则）
+                const otherCache = checkOtherCaches(cpu, address);
+                let data;
+                
+                if (otherCache.found) {
+                    data = otherCache.data;
+                    addLog(`${cpu} 从${otherCache.sourceCpu}获取数据 地址:0x${address.toString(16)}`, 'log-read');
+                    // 设置为共享状态
+                    result.block.state = CacheState.SHARED;
+                } else {
+                    data = loadFromMemory(address);
+                    addLog(`${cpu} 从内存加载数据 地址:0x${address.toString(16)} 数据:0x${data.toString(16)}`, 'log-read');
+                    // 设置为独占状态
+                    result.block.state = CacheState.EXCLUSIVE;
+                }
+                
+                // 更新Cache块
+                result.block.valid = true;
+                result.block.tag = getTag(address);
+                result.block.data = data;
+                result.block.dirty = false;
+                
+                return data;
+            }
+        }
+
+        // 执行写操作
+        function performWrite(cpu, address, data) {
+            const result = findCacheBlock(cpu, address);
+            
+            // 写作废协议：作废其他CPU的Cache
+            const invalidatedCount = invalidateOtherCaches(cpu, address);
+            systemState.stats.invalidations += invalidatedCount;
+            
+            if (result.found && result.block.state !== CacheState.INVALID) {
+                // Cache命中
+                systemState.stats.cacheHits++;
+                addLog(`${cpu} 写命中 地址:0x${address.toString(16)} 数据:0x${data.toString(16)}`, 'log-write');
+            } else {
+                // Cache缺失，需要先加载
+                systemState.stats.cacheMisses++;
+                addLog(`${cpu} 写缺失，先加载 地址:0x${address.toString(16)}`, 'log-write');
+                
+                // 如果块是脏的，先写回
+                if (result.block.valid && result.block.dirty) {
+                    const oldAddress = (result.block.tag << 8) | (result.blockIndex << 4);
+                    writeBackToMemory(cpu, oldAddress, result.block.data);
+                    addLog(`${cpu} 写回旧数据 地址:0x${oldAddress.toString(16)}`, 'log-write');
+                }
+                
+                result.block.valid = true;
+                result.block.tag = getTag(address);
+            }
+            
+            // 更新Cache块
+            result.block.data = data;
+            result.block.state = CacheState.MODIFIED;
+            result.block.dirty = true;
+            
+            addLog(`${cpu} 写入完成 地址:0x${address.toString(16)} 数据:0x${data.toString(16)}`, 'log-write');
+        }
+
+        // 执行操作
+        function executeOperation() {
+            const cpu = document.getElementById('cpuSelect').value;
+            const operation = document.getElementById('operationType').value;
+            const addressStr = document.getElementById('memoryAddress').value;
+            const dataStr = document.getElementById('dataValue').value;
+            
+            let address;
+            try {
+                address = parseInt(addressStr, 16);
+            } catch (e) {
+                alert('请输入有效的十六进制地址');
+                return;
+            }
+            
+            systemState.stats.totalOps++;
+            
+            if (operation === 'read') {
+                performRead(cpu, address);
+            } else {
+                let data;
+                try {
+                    data = parseInt(dataStr, 16);
+                } catch (e) {
+                    alert('请输入有效的十六进制数据');
+                    return;
+                }
+                performWrite(cpu, address, data);
+            }
+            
+            renderSystem();
+            animateOperation(cpu);
+        }
+
+        // 动画效果
+        function animateOperation(cpu) {
+            const cacheElement = document.getElementById(`cache-${cpu}`);
+            cacheElement.classList.add('animation');
+            setTimeout(() => {
+                cacheElement.classList.remove('animation');
+            }, 500);
+        }
+
+        // 添加日志
+        function addLog(message, className = '') {
+            const logContainer = document.getElementById('operation-log');
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry ${className}`;
+            logEntry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        // 渲染系统状态
+        function renderSystem() {
+            renderCaches();
+            renderMemory();
+            renderStats();
+        }
+
+        function renderCaches() {
+            CONFIG.CPUS.forEach(cpu => {
+                const container = document.getElementById(`cache-${cpu}`);
+                container.innerHTML = '';
+                
+                systemState.caches[cpu].forEach((block, index) => {
+                    const blockElement = document.createElement('div');
+                    blockElement.className = `cache-block ${getStateClass(block.state)}`;
+                    blockElement.innerHTML = `
+                        <div>块${index}</div>
+                        <div>状态:${block.state}</div>
+                        <div>标记:0x${block.tag.toString(16)}</div>
+                        <div>数据:0x${block.data.toString(16)}</div>
+                    `;
+                    container.appendChild(blockElement);
+                });
+            });
+        }
+
+        function renderMemory() {
+            const container = document.getElementById('memory-grid');
+            container.innerHTML = '';
+            
+            for (let i = 0; i < 64; i++) {
+                const memBlock = systemState.memory[i] || { data: 0, node: i % 4 };
+                const blockElement = document.createElement('div');
+                blockElement.className = 'memory-block';
+                blockElement.innerHTML = `
+                    <div>节点${memBlock.node}</div>
+                    <div>0x${memBlock.data.toString(16)}</div>
+                `;
+                container.appendChild(blockElement);
+            }
+        }
+
+        function renderStats() {
+            document.getElementById('totalOps').textContent = systemState.stats.totalOps;
+            document.getElementById('cacheHits').textContent = systemState.stats.cacheHits;
+            document.getElementById('cacheMisses').textContent = systemState.stats.cacheMisses;
+            document.getElementById('invalidations').textContent = systemState.stats.invalidations;
+        }
+
+        function getStateClass(state) {
+            switch (state) {
+                case CacheState.INVALID: return 'invalid';
+                case CacheState.SHARED: return 'shared';
+                case CacheState.MODIFIED: return 'modified';
+                case CacheState.EXCLUSIVE: return 'exclusive';
+                default: return 'invalid';
+            }
+        }
+
+        // 重置系统
+        function resetSystem() {
+            systemState.stats = {
+                totalOps: 0,
+                cacheHits: 0,
+                cacheMisses: 0,
+                invalidations: 0
+            };
+            document.getElementById('operation-log').innerHTML = '';
+            initSystem();
+            addLog('系统已重置', 'log-read');
+        }
+
+        // 页面加载时初始化
+        window.onload = function() {
+            initSystem();
+            addLog('Cache一致性监听协议仿真器已启动', 'log-read');
+        };
+    </script>
+</body>
+</html>
