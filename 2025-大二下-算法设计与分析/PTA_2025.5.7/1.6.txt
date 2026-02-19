@@ -1,0 +1,94 @@
+6 集合问题
+分数 100
+作者 刘亚波
+单位 吉林大学
+给定n个集合A1，A2，…，An，每个集合都由连续的正整数构成，即
+Ai={x| ai<= x<= bi}， i=1,2,...,n
+设计一个算法求最小的集合S，使得对每个i=1,2,...,n，|S ∩Ai|≠∅,即每个Ai至少含有S中的一个数。
+
+输入格式:
+第1行是n，表示集合的个数；
+第2行到第n+1行分别是这n个集合的最小正整数和最大正整数。
+
+输出格式:
+第1行是集合S，按照从小到大的顺序。
+
+输入样例1:
+5
+1 6
+3 4
+2 8
+4 10
+3 7
+输出样例1:
+4
+输入样例2:
+5
+1 7
+7 9
+5 8
+2 6
+9 10
+输出样例2:
+6 9
+
+
+
+
+
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct {
+    int start;
+    int end;
+} Interval;
+
+int compareByEnd(const void* a, const void* b) {
+    return ((Interval*)a)->end - ((Interval*)b)->end;
+}
+
+int compareInts(const void* a, const void* b) {
+    return *(int*)a - *(int*)b;
+}
+
+int main() {
+    int n;
+    scanf("%d", &n);
+    
+    Interval intervals[n];
+    for (int i = 0; i < n; i++) {
+        scanf("%d %d", &intervals[i].start, &intervals[i].end);
+    }
+    
+    qsort(intervals, n, sizeof(Interval), compareByEnd);
+    
+    int result[n];
+    int resultSize = 0;
+    
+    int i = 0;
+    while (i < n) {
+        int point = intervals[i].end;
+        result[resultSize++] = point;
+        
+        i++;
+        while (i < n && intervals[i].start <= point) {
+            i++;
+        }
+    }
+    
+    qsort(result, resultSize, sizeof(int), compareInts);
+    
+    for (int i = 0; i < resultSize; i++) {
+        printf("%d", result[i]);
+        if (i < resultSize - 1) {
+            printf(" ");
+        }
+    }
+    printf("\n");
+    
+    return 0;
+}
+
+
+

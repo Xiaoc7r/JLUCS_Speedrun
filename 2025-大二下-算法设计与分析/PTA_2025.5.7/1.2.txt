@@ -1,0 +1,126 @@
+4（必做） 带有期限的作业调度问题 *
+分数 100
+作者 孙成敏
+单位 吉林大学
+带有期限的作业调度问题要解决的是操作系统中单机、无资源约束且每个作业可在等量时间内完成的作业调度问题，形式化描述为：
+
+只能在一台机器上处理 n 个作业，每个作业 i=1,...,n 均可在单位时间内完成。
+每个作业 i 都有一个期限值 d 
+i
+​
+ >0，（ d 
+i
+​
+  是整数）。
+当且仅当作业 i 在它的截止期限前被完成时获得 p 
+i
+​
+ >0 的效益；
+问题的可行解是这 n 个作业的一个子集合。集合中的每个作业都能在各自的截止期限之前完成，产生一个作业效益之和 ∑p 
+i
+​
+  。具有最大效益值的可行解就是最优解。
+输入格式:
+第一行为一个正整数n，表示作业的个数；
+接下来的 n 行，每行两个正整数（中间用空格隔开），表示每个作业 i 的截止期限 d 
+i
+​
+  和按期完成产生的效益p 
+i
+​
+ 。
+输出格式:
+一行一个整数，给出最优解的效益值。
+输入样例1:
+4
+1 20
+2 15
+2 100
+1 10
+输出样例1:
+120
+输入样例2:
+6
+2 25
+3 20
+3 15
+2 10
+4 1
+4 5 
+输出样例2:
+65
+数据范围
+d 
+i
+​
+ ≤n≤10 
+6
+ ,p 
+i
+​
+ ≤10 
+9
+
+
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct {
+    int deadline;
+    int profit;
+} Job;
+
+int compare(const void *a, const void *b) {
+    return ((Job *)b)->profit - ((Job *)a)->profit;
+}
+
+int find(int *parent, int i) {
+    if (parent[i] != i)
+        parent[i] = find(parent, parent[i]);
+    return parent[i];
+}
+
+int main() {
+    int n;
+    scanf("%d", &n);
+    
+    Job *jobs = (Job *)malloc(n * sizeof(Job));
+    int maxDeadline = 0;
+    
+    for (int i = 0; i < n; i++) {
+        scanf("%d %d", &jobs[i].deadline, &jobs[i].profit);
+        if (jobs[i].deadline > maxDeadline)
+            maxDeadline = jobs[i].deadline;
+    }
+    
+    if (maxDeadline > n)
+        maxDeadline = n;
+    
+    qsort(jobs, n, sizeof(Job), compare);
+    
+    int *parent = (int *)malloc((maxDeadline + 1) * sizeof(int));
+    for (int i = 0; i <= maxDeadline; i++)
+        parent[i] = i;
+    
+    long long totalProfit = 0;
+    
+    for (int i = 0; i < n; i++) {
+        int deadline = jobs[i].deadline;
+        if (deadline > maxDeadline)
+            deadline = maxDeadline;
+        
+        int availableSlot = find(parent, deadline);
+        
+        if (availableSlot > 0) {
+            totalProfit += jobs[i].profit;
+            parent[availableSlot] = find(parent, availableSlot - 1);
+        }
+    }
+    
+    printf("%lld\n", totalProfit);
+    
+    free(jobs);
+    free(parent);
+    
+    return 0;
+}

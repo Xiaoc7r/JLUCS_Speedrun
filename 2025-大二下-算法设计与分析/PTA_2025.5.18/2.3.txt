@@ -1,0 +1,60 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct {
+    int start;
+    int end;
+    int duration;
+} Lecture;
+
+int compareByEnd(const void *a, const void *b) {
+    Lecture *lectureA = (Lecture *)a;
+    Lecture *lectureB = (Lecture *)b;
+    
+    if (lectureA->end < lectureB->end) {
+        return -1;
+    } else if (lectureA->end > lectureB->end) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+int main() {
+    int n;
+    scanf("%d", &n);
+    
+    Lecture lectures[5000];
+    
+    for (int i = 0; i < n; i++) {
+        scanf("%d %d", &lectures[i].start, &lectures[i].end);
+        lectures[i].duration = lectures[i].end - lectures[i].start;
+    }
+    
+    qsort(lectures, n, sizeof(Lecture), compareByEnd);
+    
+    int dp[5000];
+    for (int i = 0; i < n; i++) {
+        dp[i] = lectures[i].duration;
+        
+        for (int j = 0; j < i; j++) {
+            if (lectures[j].end <= lectures[i].start) {
+                if (dp[j] + lectures[i].duration > dp[i]) {
+                    dp[i] = dp[j] + lectures[i].duration;
+                }
+            }
+        }
+    }
+    
+    int maxTime = 0;
+    for (int i = 0; i < n; i++) {
+        if (dp[i] > maxTime) {
+            maxTime = dp[i];
+        }
+    }
+    
+    printf("%d", maxTime);
+    
+    return 0;
+}
+

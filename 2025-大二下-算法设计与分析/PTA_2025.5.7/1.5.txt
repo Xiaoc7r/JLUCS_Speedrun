@@ -1,0 +1,56 @@
+5 买股票问题
+分数 100
+作者 高滢
+单位 吉林大学
+给定一个数组，它的第 i 个元素是一支给定股票第 i 天的价格。
+对该股票可以进行多次买卖操作，请设计一个算法,来计算所能获取的最大利润。注意，在对该股票买卖操作过程中,要求在再次购买前,出售掉之前的股票。
+
+输入格式:
+第 1 行1个整数n, 表示数组元素数。
+
+第2行n个整数，表示股票价格。
+
+输出格式:
+一个整数，表示所能获得的最大利润。
+
+输入样例1:
+6
+7 1 5 3 6 4
+输出样例1:
+7
+解释：在第 2 天买入，在第 3 天卖出, 获得利润 = 5-1 = 4 。随后，在第 4 天买入，在第 5 天卖出, 获得利润 = 6-3 = 3 。
+
+输入样例2:
+5
+1 2 3 4 5
+输出样例2:
+4
+
+
+
+#include <stdio.h>
+
+int maxProfit(int* prices, int n) {
+    int profit = 0;
+    for (int i = 1; i < n; i++) {
+        if (prices[i] > prices[i - 1]) {
+            profit += prices[i] - prices[i - 1];
+        }
+    }
+    return profit;
+}
+
+int main() {
+    int n;
+    scanf("%d", &n);
+    
+    int prices[n];
+    for (int i = 0; i < n; i++) {
+        scanf("%d", &prices[i]);
+    }
+    
+    int result = maxProfit(prices, n);
+    printf("%d\n", result);
+    
+    return 0;
+}

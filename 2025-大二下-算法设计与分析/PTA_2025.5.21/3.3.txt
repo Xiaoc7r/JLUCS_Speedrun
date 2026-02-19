@@ -1,0 +1,69 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+int n;      
+int M;           
+int weights[21]; 
+int current[21]; 
+int solutions[1 << 20][21]; 
+int solution_count = 0;        
+
+int compare_solutions(const void* a, const void* b) {
+    int* sol1 = (int*)a;
+    int* sol2 = (int*)b;
+    
+    for (int i = 0; i < n; i++) {
+        if (sol1[i] != sol2[i]) {
+            return sol1[i] - sol2[i];
+        }
+    }
+    return 0;
+}
+
+void backtrack(int index, int current_sum) {
+    if (index == n) {
+        if (current_sum == M) {
+            memcpy(solutions[solution_count], current, sizeof(int) * n);
+            solution_count++;
+        }
+        return;
+    }
+    
+    current[index] = 0;
+    backtrack(index + 1, current_sum);
+    
+    if (current_sum + weights[index] <= M) {
+        current[index] = 1;
+        backtrack(index + 1, current_sum + weights[index]);
+        current[index] = 0;
+    }
+}
+
+int main() {
+    scanf("%d", &n);
+    scanf("%d", &M);
+    
+    for (int i = 0; i < n; i++) {
+        scanf("%d", &weights[i]);
+    }
+    
+    backtrack(0, 0);
+    
+    if (solution_count == 0) {
+        printf("-1");
+    } else {
+        qsort(solutions, solution_count, sizeof(int) * 21, compare_solutions);
+        
+        for (int i = 0; i < solution_count; i++) {
+            for (int j = 0; j < n; j++) {
+                printf("%d", solutions[i][j]);
+            }
+            if (i < solution_count - 1) {
+                printf("\n");
+            }
+        }
+    }
+    
+    return 0;
+}

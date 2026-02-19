@@ -1,0 +1,94 @@
+#include <stdio.h>
+#include <stdbool.h>
+#include <stdlib.h>
+
+typedef struct {
+    int shape;  // 宝石形状 (0 到 n-1)
+    int color;  // 宝石颜色 (0 到 n-1)
+} Jewel;
+
+// 检查在(row, col)位置放置形状shape和颜色color的宝石是否有效
+bool isValid(Jewel** matrix, int row, int col, int shape, int color, int n) {
+    // 检查同一行是否已有相同形状或颜色
+    for (int j = 0; j < col; j++) {
+        if (matrix[row][j].shape == shape || matrix[row][j].color == color)
+            return false;
+    }
+    
+    // 检查同一列是否已有相同形状或颜色
+    for (int i = 0; i < row; i++) {
+        if (matrix[i][col].shape == shape || matrix[i][col].color == color)
+            return false;
+    }
+    
+    return true;
+}
+
+// 使用回溯法统计有效排列数量
+long long countArrangements(Jewel** matrix, int n, bool** used, int row, int col) {
+    // 如果已经填满整个矩阵，找到一个有效排列
+    if (row == n)
+        return 1;
+    
+    // 计算下一个位置
+    int nextRow = row;
+    int nextCol = col + 1;
+    if (nextCol == n) {
+        nextRow++;
+        nextCol = 0;
+    }
+    
+    long long count = 0;
+    
+    // 尝试所有可能的宝石
+    for (int shape = 0; shape < n; shape++) {
+        for (int color = 0; color < n; color++) {
+            // 检查该宝石是否已使用以及是否可以放在当前位置
+            if (!used[shape][color] && isValid(matrix, row, col, shape, color, n)) {
+                // 放置宝石
+                matrix[row][col].shape = shape;
+                matrix[row][col].color = color;
+                used[shape][color] = true;
+                
+                // 递归尝试下一个位置
+                count += countArrangements(matrix, n, used, nextRow, nextCol);
+                
+                // 回溯
+                used[shape][color] = false;
+            }
+        }
+    }
+    
+    return count;
+}
+
+int main() {
+    int n;
+    scanf("%d", &n);
+    
+    // 初始化矩阵
+    Jewel** matrix = (Jewel**)malloc(n * sizeof(Jewel*));
+    for (int i = 0; i < n; i++) {
+        matrix[i] = (Jewel*)malloc(n * sizeof(Jewel));
+    }
+    
+    // 初始化已使用宝石的状态数组
+    bool** used = (bool**)malloc(n * sizeof(bool*));
+    for (int i = 0; i < n; i++) {
+        used[i] = (bool*)calloc(n, sizeof(bool));
+    }
+    
+    // 计算结果
+    long long result = countArrangements(matrix, n, used, 0, 0);
+    printf("%lld\n", result);
+    
+    // 释放内存
+    for (int i = 0; i < n; i++) {
+        free(matrix[i]);
+        free(used[i]);
+    }
+    free(matrix);
+    free(used);
+    
+    return 0;
+}

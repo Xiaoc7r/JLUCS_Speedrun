@@ -1,0 +1,80 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX_N 21  // 最大n为20，需要n+1
+
+int n;           // 集合大小
+int M;           // 目标和
+int weights[MAX_N]; // 权重数组
+int current[MAX_N]; // 当前组合
+int solutions[1 << 20][MAX_N]; // 存储所有解（最多2^20个）
+int solution_count = 0;        // 解的数量
+
+// 比较两个解决方案（用于排序）
+int compare_solutions(const void* a, const void* b) {
+    int* sol1 = (int*)a;
+    int* sol2 = (int*)b;
+    
+    for (int i = 0; i < n; i++) {
+        if (sol1[i] != sol2[i]) {
+            return sol1[i] - sol2[i];
+        }
+    }
+    return 0;
+}
+
+// 回溯函数
+void backtrack(int index, int current_sum) {
+    // 已经考虑完所有元素
+    if (index == n) {
+        if (current_sum == M) {
+            // 找到一个解，保存它
+            memcpy(solutions[solution_count], current, sizeof(int) * n);
+            solution_count++;
+        }
+        return;
+    }
+    
+    // 选择不包含当前元素（x_i = 0）
+    current[index] = 0;
+    backtrack(index + 1, current_sum);
+    
+    // 选择包含当前元素（x_i = 1）
+    if (current_sum + weights[index] <= M) {
+        current[index] = 1;
+        backtrack(index + 1, current_sum + weights[index]);
+        current[index] = 0;  // 回溯
+    }
+}
+
+int main() {
+    // 读入数据
+    scanf("%d", &n);
+    scanf("%d", &M);
+    
+    for (int i = 0; i < n; i++) {
+        scanf("%d", &weights[i]);
+    }
+    
+    // 执行回溯算法
+    backtrack(0, 0);
+    
+    // 检查是否有解
+    if (solution_count == 0) {
+        printf("-1\n");
+    } else {
+        // 按字典序排序解决方案
+        qsort(solutions, solution_count, sizeof(int) * MAX_N, compare_solutions);
+        
+        // 输出所有解决方案
+        for (int i = 0; i < solution_count; i++) {
+            for (int j = 0; j < n; j++) {
+                printf("%d", solutions[i][j]);
+            }
+            printf("\n");
+        }
+    }
+    
+    return 0;
+}

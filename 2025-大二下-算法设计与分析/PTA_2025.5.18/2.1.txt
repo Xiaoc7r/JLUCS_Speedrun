@@ -1,0 +1,62 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <float.h>
+
+int main() {
+    double p[101];
+    double q[101];
+    double e[101][101];
+    double w[101][101];
+    int root[101][101];
+    int result[101];
+    int result_index = 0;
+    int n;
+    scanf("%d", &n);
+    
+    for (int i = 1; i <= n; i++) {
+        scanf("%lf", &p[i]);
+    }
+    
+    for (int i = 0; i <= n; i++) {
+        scanf("%lf", &q[i]);
+    }
+    
+    for (int i = 1; i <= 101; i++) {
+        e[i][i-1] = q[i-1];
+        w[i][i-1] = q[i-1];
+    }
+    
+    for (int len = 1; len <= n; len++) {
+        for (int i = 1; i <= n - len + 1; i++) {
+            int j = i + len - 1;
+            e[i][j] = DBL_MAX;
+            w[i][j] = w[i][j-1] + p[j] + q[j];
+            
+            for (int r = i; r <= j; r++) {
+                double t = e[i][r-1] + e[r+1][j] + w[i][j];
+                if (t < e[i][j]) {
+                    e[i][j] = t;
+                    root[i][j] = r;
+                }
+            }
+        }
+    }
+    
+    void preorder(int i, int j) {
+        if (i > j) return;
+        
+        int r = root[i][j];
+        result[result_index++] = r;
+        preorder(i, r - 1);
+        preorder(r + 1, j);
+    }
+    
+    preorder(1, n);
+    
+    for (int i = 0; i < n; i++) {
+        printf("%d ", result[i]);
+    }
+    printf("\n");
+    
+    return 0;
+}

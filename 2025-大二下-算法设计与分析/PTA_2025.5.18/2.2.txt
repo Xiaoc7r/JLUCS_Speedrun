@@ -1,0 +1,103 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define MAXN 10000
+
+int n;
+int A[MAXN], B[MAXN], C[MAXN];
+int m;
+int dp[MAXN];
+int pre[MAXN];
+int seq[MAXN];
+
+struct Node { int len, idx; } bit[MAXN+5];
+
+static struct Node better(struct Node a, struct Node b) {
+    if (a.len != b.len) return a.len > b.len ? a : b;
+    return a.idx < b.idx ? a : b;
+}
+
+void bit_update(int p, struct Node v) {
+    while (p <= m) {
+        bit[p] = better(bit[p], v);
+        p += p & -p;
+    }
+}
+
+struct Node bit_query(int p) {
+    struct Node res = {0, -1};
+    while (p > 0) {
+        res = better(res, bit[p]);
+        p -= p & -p;
+    }
+    return res;
+}
+
+int cmp_int(const void *a, const void *b){
+    return *(int*)a - *(int*)b;
+}
+
+int main(){
+    scanf("%d", &n);
+    for(int i = 0; i < n; i++){
+        scanf("%d", &A[i]);
+        B[i] = A[i];
+    }
+    qsort(B, n, sizeof(int), cmp_int);
+    m = 0;
+    for(int i = 0, last = -1; i < n; i++){
+        if (i==0 || B[i] != last) {
+            C[m++] = B[i];
+            last = B[i];
+        }
+    }
+    for(int i = 0; i < n; i++){
+        int v = A[i];
+        int lo = 0, hi = m-1, mid;
+        while(lo < hi){
+            mid = (lo+hi)>>1;
+            if (C[mid] < v) lo = mid+1;
+            else hi = mid;
+        }
+        A[i] = lo+1;
+    }
+    int maxL = 0, endIdx = 0;
+    for(int i = 0; i < n; i++){
+        struct Node t = bit_query(A[i]);
+        dp[i] = t.len + 1;
+        pre[i] = t.idx;
+        if (dp[i] > maxL || (dp[i]==maxL && i < endIdx)) {
+            maxL = dp[i];
+            endIdx = i;
+        }
+
+        bit_update(A[i], (struct Node){dp[i], i});
+    }
+
+    int k = maxL, p = endIdx;
+    while(p >= 0){
+        seq[--k] = p;
+        p = pre[p];
+    }
+
+    printf("%d\n", maxL);
+    for(int i = 0; i < maxL; i++){
+        printf("%d%c", C[ A[ seq[i] ] - 1 ], i+1<maxL?' ':'\n');
+    }
+
+    int tail[MAXN+1], L2 = 0;
+    for(int i = 0; i < n; i++){
+        int orig = C[ A[i] - 1 ];
+        int x = -orig;
+        int lo = 1, hi = L2+1, mid;
+        while(lo < hi){
+            mid = (lo+hi)>>1;
+            if (tail[mid] < x) lo = mid+1;
+            else hi = mid;
+        }
+        if (lo > L2) L2++;
+        tail[lo] = x;
+    }
+    printf("%d\n", L2);
+    return 0;
+}

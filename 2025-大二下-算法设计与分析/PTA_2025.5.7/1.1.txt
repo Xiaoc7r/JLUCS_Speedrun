@@ -1,0 +1,86 @@
+1（必做） 二维极大点问题 *
+分数 100
+作者 李妮娅
+单位 吉林大学
+在一个二维平面上，如果有两个点(x1,y1)和(x2,y2)，有比较关系x1>x2且y1>y2，则称点(x1,y1)支配了(x2,y2)，(x1,y1)是极大点。
+当比较关系修改为x1≥x2且y1≥y2时，支配关系会产生有趣的变化，下面考虑这种情况。对于给定n个点的集合，编程找出所有的极大点，按照x坐标由小到大，输出极大点的坐标。
+
+输入格式:
+输入包括两行，第一行是正整数n，表示是点的个数，第二行包含n个点的坐标，坐标值都是整数，x坐标和y坐标范围从0到1000，且输入数据中不存在坐标相同的点。
+
+输出格式:
+按x轴坐标最小到大的顺序输出所有极大点。
+输出格式为:(x1,y1)(x2,y2)...(xk,yk)
+
+输入样例:
+5
+1 2 2 2 3 1 2 3 1 4
+输出样例:
+(1,4)(2,3)(3,1)
+
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct {
+    int x;
+    int y;
+} Point;
+
+int comparePoints(const void* a, const void* b) {
+    Point* p1 = (Point*)a;
+    Point* p2 = (Point*)b;
+    if (p1->x != p2->x)
+        return p1->x - p2->x;
+    return p1->y - p2->y;
+}
+
+int isDominated(Point p, Point points[], int n, int idx) {
+    for (int i = 0; i < n; i++) {
+        if (i != idx && 
+            p.x <= points[i].x && 
+            p.y <= points[i].y && 
+            (p.x < points[i].x || p.y < points[i].y)) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+int isDuplicate(Point p, Point maxPoints[], int count) {
+    for (int i = 0; i < count; i++) {
+        if (p.x == maxPoints[i].x && p.y == maxPoints[i].y) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+int main() {
+    int n;
+    scanf("%d", &n);
+    
+    Point points[n];
+    for (int i = 0; i < n; i++) {
+        scanf("%d %d", &points[i].x, &points[i].y);
+    }
+    
+    Point maxPoints[n];
+    int count = 0;
+    
+    for (int i = 0; i < n; i++) {
+        if (!isDominated(points[i], points, n, i)) {
+            if (!isDuplicate(points[i], maxPoints, count)) {
+                maxPoints[count++] = points[i];
+            }
+        }
+    }
+    
+    qsort(maxPoints, count, sizeof(Point), comparePoints);
+    
+    for (int i = 0; i < count; i++) {
+        printf("(%d,%d)", maxPoints[i].x, maxPoints[i].y);
+    }
+    
+    return 0;
+}
+
