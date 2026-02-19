@@ -1,0 +1,4 @@
+先
+cd C:\Users\Mzx66\Desktop\moss
+后
+perl moss.pl -l cc Ataxx1.1.cpp Ataxx3.12.cpp

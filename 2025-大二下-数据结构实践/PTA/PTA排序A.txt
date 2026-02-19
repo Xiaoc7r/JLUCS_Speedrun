@@ -1,0 +1,420 @@
+C++ STL是Standard Template Library的简称，即标准模板库。简单来说，STL将常用的数据结构与算法进行了封装，用户需要时可以直接调用，不用重新开发。排序算法sort( )是STL包含的一个重要算法。
+
+STL中的sort()函数基于快速排序算法实现，众所众知，快速排序是目前已知平均情况下最快的排序算法，被IEEE评选为20世纪十大算法之一，但其最坏情况下时间复杂度会退化为O(n 
+2
+ )。STL中的sort()对传统快速排序做了巧妙的改进，使其最坏情况下时间复杂度也能维持在O(nlogn)，它是如何实现的呢？
+
+（1）快速排序算法最坏情况下时间复杂度退化为O(n 
+2
+ )的主要原因是，每次划分（Partition）操作时，都分在子数组的最边上，导致递归深度恶化为O(n)层。而STL的sort()在Partition操作有恶化倾向时，能够自我侦测，转而改为堆排序，使效率维持在堆排序的O(nlogn)。其具体方法是：侦测快速排序的递归深度，当递归深度达到⌊2log 
+2
+​
+ n⌋=O(logn)层时，强行停止递归，转而对当前处理的子数组进行堆排序。
+
+（2）此外，传统的快速排序在数据量很小时，为极小的子数组产生许多的递归调用，得不偿失。为此，STL的sort()进行了优化，在小数据量的情况下改用插入排序。具体做法是：当递归处理的子数组长度（子数组包含的元素个数）小于等于某个阈值threshold 时，停止处理并退出本层递归，使当前子数组停留在“接近排序但尚未完成”的状态，最后待所有递归都退出后，再对整个序列进行一次插入排序（注意不是对当前处理的子数组进行插入排序，而是在快速排序的所有递归完全退出后，对整个数组统一进行一次插入排序）。实验表明，此种策略有着良好的效率，因为插入排序在面对“接近有序”的序列时拥有良好的性能。
+
+在本题中，请你按照上述思路，自己实现STL的sort()函数。
+
+备注：Partition操作选取第1个元素作为基准元素。Partition操作的不同实现可能导致不同的输出结果，为保证输出结果唯一，该操作的实现请以教材为准，即Hoare提出快速排序算法时最早给出的Partition实现。堆排序的实现以老师课堂讲的算法为准。
+
+函数接口定义：
+void sort(int *R, int n);
+功能为对整数R[1]…R[n]递增排序。
+
+裁判测试程序样例：
+#include<iostream>
+#include<stdlib.h>
+#include<math.h>
+using namespace std;
+int threshold;
+
+/* 请在这里补充你的代码，即你所实现的sort函数 */
+
+int main()
+{
+    int n,i;
+    int a[50010];
+    scanf("%d %d", &n, &threshold);
+    for (i = 1; i <= n; i++)
+        scanf("%d", &a[i]);
+    
+    sort(a,n);
+    
+    printf("Final:");
+    for (i = 1; i <= n; i++)
+        printf("%d ",a[i]);
+    printf("\n");
+    return 0;
+}
+
+备注：提交代码时，只需提交sort函数以及你自定义的其他函数，不用提交#include或者main函数等内容。
+
+输入格式:
+输入第一行为2个正整数n和threshold，n为待排序的元素个数，不超过50000，threshold为改用插入排序的阈值，不超过20，含义如上所述。第二行为n个空格间隔的整数。本题中读入数据的操作无需你来实现，而由框架程序完成。
+
+输出格式:
+输出第一行为以depth_limit:开头的整数，表示转为堆排序的递归深度，即⌊2log 
+2
+​
+ n⌋。从第二行开始，输出对某子数组转为堆排序后，该子数组初始建堆的结果，每个元素后一个空格，每个堆占一行，以Heap:开头。注意，可能不止一个堆。接下来下一行，输出n个整数，每个整数后一个空格，为快速排序所有递归退出后，插入排序执行前的数组元素，以Intermediate:开头。最后一行为n整数，每个整数后一个空格，表示排序后的数组，以Final:开头（最后一行由框架程序完成，无需你来输出）。
+
+输入样例1：
+10 2
+10 9 8 7 6 5 4 3 2 1
+
+输出样例1：
+depth_limit:6
+Heap:7 6 5 4 
+Intermediate:1 2 3 4 5 6 7 8 9 10 
+Final:1 2 3 4 5 6 7 8 9 10 
+
+输入样例2：
+60 2
+66 61 92 22 50 80 39 2 25 60 49 17 37 19 24 57 40 82 11 52 45 0 33 78 32 25 19 42 92 50 39 87 74 87 56 79 63 63 80 83 50 3 87 2 91 77 87 10 59 23 25 6 49 85 9 95 60 16 28 1 
+
+输出样例2：
+depth_limit:11
+Heap:24 19 23 19 17 22 
+Intermediate:1 0 2 2 3 6 10 9 11 16 17 19 19 22 23 24 25 25 25 28 32 33 37 39 39 42 40 45 49 49 50 50 50 52 56 57 59 60 60 61 63 63 66 77 74 78 79 80 80 82 83 85 87 87 87 87 91 92 92 95 
+Final:0 1 2 2 3 6 9 10 11 16 17 19 19 22 23 24 25 25 25 28 32 33 37 39 39 40 42 45 49 49 50 50 50 52 56 57 59 60 60 61 63 63 66 74 77 78 79 80 80 82 83 85 87 87 87 87 91 92 92 95 
+
+
+/* 请在这里补充你的代码，即你所实现的sort函数 */
+//朱老师PPT_Partition
+int Partition(int R[], int m, int n) { //对子数组Rm…Rn分划
+    int K = R[m], L = m + 1, G = n; //Rm为基准元素
+    int temp; //用于交换元素
+
+    while (L <= G) {
+        while (L <= n && R[L] <= K) L++; //从左向右找第一个>K的元素
+        while (R[G] > K) G--; //从右向左找第一个≤K的元素
+        if (L < G) {
+            temp = R[L];
+            R[L] = R[G];
+            R[G] = temp;
+            L++;
+            G--;
+        }
+    }
+    temp = R[m];
+    R[m] = R[G];
+    R[G] = temp;
+    return G;
+}
+
+
+void MaxHeapify(int R[], int i, int heap_size) {
+    int largest = i;
+    int left = 2 * i;
+    int right = 2 * i + 1;
+    int temp;
+
+    if (left <= heap_size && R[left] > R[largest])
+        largest = left;
+
+    if (right <= heap_size && R[right] > R[largest])
+        largest = right;
+
+    if (largest != i) {
+        //交换R[i]和R[largest]
+        temp = R[i];
+        R[i] = R[largest];
+        R[largest] = temp;
+        MaxHeapify(R, largest, heap_size);
+    }
+}
+
+void BuildMaxHeap(int R[], int heap_size) {
+    int i;
+    for (i = heap_size / 2; i >= 1; i--) {
+        MaxHeapify(R, i, heap_size);
+    }
+}
+void HeapSort(int R[], int m, int n) {
+    int length = n - m + 1;
+    int* temp;
+    int i;
+    int temp_swap;
+    temp = (int*)malloc((length + 1) * sizeof(int));
+    for (i = 1; i <= length; i++) {
+        temp[i] = R[m + i - 1];
+    }
+
+    //建立初始堆
+    BuildMaxHeap(temp, length);
+    printf("Heap:");
+    for (i = 1; i <= length; i++) {
+        printf("%d ", temp[i]);
+    }
+    printf("\n");
+
+
+    for (i = length; i > 1; i--) {
+        // 交换temp[1]和temp[i]
+        temp_swap = temp[1];
+        temp[1] = temp[i];
+        temp[i] = temp_swap;
+        MaxHeapify(temp, 1, i - 1);
+    }
+
+    for (i = 1; i <= length; i++) {
+        R[m + i - 1] = temp[i];
+    }
+}
+
+//插入排序
+void InsertionSort(int R[], int n) { // 对R[1]...R[n]排序
+    int i, j, K;
+    for (i = 2; i <= n; i++) { // R[1]..... R[i-1]  R[i]
+        K = R[i];
+        j = i - 1;
+        while (j >= 1 && R[j] > K) {
+            R[j + 1] = R[j];
+            j--;
+        }
+        R[j + 1] = K;
+    }
+}
+//朱老师PPT_QuickSort
+void QuickSort(int R[], int m, int n, int max_depth, int current_depth) {
+    extern int threshold; //外变量
+    int k;
+    if (n - m + 1 <= threshold) {
+        return;
+    }
+
+    //递归深度达到上限使用堆排序
+    if (current_depth >= max_depth) {
+        HeapSort(R, m, n);
+        return;
+    }
+
+    if (m < n) {
+        k = Partition(R, m, n);
+        QuickSort(R, m, k - 1, max_depth, current_depth + 1);
+        QuickSort(R, k + 1, n, max_depth, current_depth + 1);
+    }
+}
+
+
+
+void sort(int R[], int n) {
+    //计算最大递归深度
+    int depth_limit = (int)(2 * log(n) / log(2));
+    int i;
+
+    printf("depth_limit:%d\n", depth_limit);
+
+    QuickSort(R, 1, n, depth_limit, 0);
+
+ 
+    printf("Intermediate:");
+    for (i = 1; i <= n; i++) {
+        printf("%d ", R[i]);
+    }
+    printf("\n");
+    InsertionSort(R, n);
+}
+
+通俗解释：排序算法实现
+这段代码是一个高级排序算法的实现，类似于C++标准库中的sort函数。这个算法很聪明，它结合了三种不同的排序方法（快速排序、堆排序和插入排序）的优点，让排序效率更高。我来解释每个部分是做什么的：
+
+主要部分解释
+Partition函数（分区函数）
+
+int Partition(int R[], int m, int n) { //对子数组Rm…Rn分划
+    int K = R[m], L = m + 1, G = n; //Rm为基准元素
+    // ...
+就像分蛋糕一样，这个函数把一组数字分成两部分：左边的都比选定的数字小，右边的都比它大。这个选定的数字叫"基准元素"。
+
+堆排序相关函数
+
+void MaxHeapify(int R[], int i, int heap_size) {...}
+void BuildMaxHeap(int R[], int heap_size) {...}
+void HeapSort(int R[], int m, int n) {...}
+堆排序就像是在排队，先找出最高的人站到队尾，然后在剩下的人中再找最高的，依此类推。这样队伍从后往前就按从高到低排好了。
+
+插入排序
+
+void InsertionSort(int R[], int n) {...}
+插入排序就像是排扑克牌，每次拿一张新牌，找到它应该放的位置插进去。
+
+快速排序（主体算法）
+
+void QuickSort(int R[], int m, int n, int max_depth, int current_depth) {...}
+快速排序是一种"分而治之"的方法。先把数组分成两部分，然后分别对这两部分再进行排序。
+
+主排序函数
+
+void sort(int R[], int n) {...}
+这是"总指挥"，负责协调不同的排序方法在适当的时候工作。
+
+详细代码解释（加注释）
+
+/* 请在这里补充你的代码，即你所实现的sort函数 */
+//朱老师PPT_Partition
+int Partition(int R[], int m, int n) { //对子数组Rm…Rn分划
+    int K = R[m], L = m + 1, G = n; //选第一个元素作为基准元素
+    int temp; //用于交换元素
+
+    while (L <= G) {
+        while (L <= n && R[L] <= K) L++; //从左边找比基准元素大的数
+        while (R[G] > K) G--; //从右边找比基准元素小的或等于的数
+        if (L < G) {
+            // 交换找到的两个数，让小的在左边，大的在右边
+            temp = R[L];
+            R[L] = R[G];
+            R[G] = temp;
+            L++;
+            G--;
+        }
+    }
+    // 把基准元素放到中间位置，这样基准左边的都比它小，右边的都比它大
+    temp = R[m];
+    R[m] = R[G];
+    R[G] = temp;
+    return G; // 返回基准元素最后的位置
+}
+
+// 维护最大堆的性质，确保父节点大于子节点
+void MaxHeapify(int R[], int i, int heap_size) {
+    int largest = i; // 假设当前节点是最大的
+    int left = 2 * i; // 左孩子位置
+    int right = 2 * i + 1; // 右孩子位置
+    int temp;
+
+    // 如果左孩子存在且比当前节点大
+    if (left <= heap_size && R[left] > R[largest])
+        largest = left;
+
+    // 如果右孩子存在且比目前找到的最大值还大
+    if (right <= heap_size && R[right] > R[largest])
+        largest = right;
+
+    // 如果最大值不是当前节点，则交换位置并继续调整
+    if (largest != i) {
+        temp = R[i];
+        R[i] = R[largest];
+        R[largest] = temp;
+        // 递归调整被交换的子树
+        MaxHeapify(R, largest, heap_size);
+    }
+}
+
+// 建立最大堆，让整个数组符合堆的性质
+void BuildMaxHeap(int R[], int heap_size) {
+    int i;
+    // 从最后一个非叶子节点开始向上调整
+    for (i = heap_size / 2; i >= 1; i--) {
+        MaxHeapify(R, i, heap_size);
+    }
+}
+
+// 用堆排序对子数组进行排序
+void HeapSort(int R[], int m, int n) {
+    int length = n - m + 1; // 子数组长度
+    int* temp; // 临时数组
+    int i;
+    int temp_swap;
+    // 分配临时数组空间
+    temp = (int*)malloc((length + 1) * sizeof(int));
+    // 复制子数组到临时数组
+    for (i = 1; i <= length; i++) {
+        temp[i] = R[m + i - 1];
+    }
+
+    // 建立初始堆并打印堆内容
+    BuildMaxHeap(temp, length);
+    printf("Heap:");
+    for (i = 1; i <= length; i++) {
+        printf("%d ", temp[i]);
+    }
+    printf("\n");
+
+    // 堆排序：每次取出最大值放到末尾，然后调整剩余部分
+    for (i = length; i > 1; i--) {
+        // 交换堆顶（最大值）和当前堆的最后一个元素
+        temp_swap = temp[1];
+        temp[1] = temp[i];
+        temp[i] = temp_swap;
+        // 调整剩余堆，保持堆的性质
+        MaxHeapify(temp, 1, i - 1);
+    }
+
+    // 将排好序的数据复制回原数组
+    for (i = 1; i <= length; i++) {
+        R[m + i - 1] = temp[i];
+    }
+}
+
+// 插入排序算法 - 对较小的数组效率很高
+void InsertionSort(int R[], int n) { // 对R[1]...R[n]排序
+    int i, j, K;
+    for (i = 2; i <= n; i++) { // 假设R[1]已经排好序，从R[2]开始插入
+        K = R[i]; // 当前要插入的元素
+        j = i - 1;
+        // 寻找插入位置并移动元素
+        while (j >= 1 && R[j] > K) {
+            R[j + 1] = R[j]; // 大的元素向后移
+            j--;
+        }
+        R[j + 1] = K; // 找到合适位置，插入元素
+    }
+}
+
+// 优化的快速排序 - 能够自动切换到堆排序
+void QuickSort(int R[], int m, int n, int max_depth, int current_depth) {
+    extern int threshold; // 外部定义的阈值，小数组用插入排序
+    int k;
+    // 如果子数组很小，就先不排序，等最后统一用插入排序
+    if (n - m + 1 <= threshold) {
+        return;
+    }
+
+    // 如果递归太深（可能导致最坏情况），就改用堆排序
+    if (current_depth >= max_depth) {
+        HeapSort(R, m, n);
+        return;
+    }
+
+    // 正常的快速排序流程
+    if (m < n) {
+        k = Partition(R, m, n); // 分区
+        // 递归排序左右两部分
+        QuickSort(R, m, k - 1, max_depth, current_depth + 1);
+        QuickSort(R, k + 1, n, max_depth, current_depth + 1);
+    }
+}
+
+// 主排序函数 - 整个排序过程的入口
+void sort(int R[], int n) {
+    // 计算最大递归深度限制 = 2*log2(n)
+    int depth_limit = (int)(2 * log(n) / log(2));
+    int i;
+
+    printf("depth_limit:%d\n", depth_limit);
+
+    // 先使用快速排序（可能会在某些情况下转为堆排序）
+    QuickSort(R, 1, n, depth_limit, 0);
+
+    // 打印快速排序后的中间结果
+    printf("Intermediate:");
+    for (i = 1; i <= n; i++) {
+        printf("%d ", R[i]);
+    }
+    printf("\n");
+    
+    // 最后进行一次插入排序，完成整个数组的排序
+    InsertionSort(R, n);
+}
+算法的智慧
+这个排序算法很聪明，它结合了三种排序方法的优点：
+
+快速排序：一般情况下速度很快
+堆排序：在快速排序可能变慢的情况下接管排序
+插入排序：对接近有序的小数组效率最高
+就像煮饭，米饭先用大火煮开（快速排序），担心煮糊了就转中火（堆排序），最后用小火焖一会儿（插入排序），这样做出来的米饭又好吃又省时间！
+
+
+
+

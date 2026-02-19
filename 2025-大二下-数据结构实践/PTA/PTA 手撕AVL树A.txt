@@ -1,0 +1,235 @@
+A 手撕AVL树（基础版）
+分数 10
+作者 朱允刚
+单位 吉林大学
+对一棵初始为空的高度平衡树（AVL树）进行若干插入或删除操作，请输出最后得到的AVL树。
+
+备注：
+（1）当有多种旋转方案时，优先选择旋转次数少的方案。
+（2）70%的测试点只包含插入操作，如果你只实现插入操作，也能获得70%的分数。
+
+输入格式:
+输入第一行为一个整数 T，表示操作数目。随后 T 行，每行为Insert K（表示插入关键词为K的结点，若树中已有关键词为K的结点，则不插入）或Remove K（表示删除关键词为K的结点，若树中无关键词为K的结点，则不删除），其中K为整数。 T 不超过2×10 
+5
+ 。
+
+输出格式:
+输出经上述操作后得到的高度平衡树的中根序列和先根序列，序列中每个整数后一个空格，两个序列之间用空行间隔。
+
+输入样例:
+16
+Insert 17
+Insert 31
+Insert 13
+Insert 11
+Insert 20
+Insert 35
+Insert 25
+Insert 8
+Insert 4
+Insert 11
+Insert 24
+Insert 40
+Insert 27
+Insert 9
+Remove 17
+Remove 13
+输出样例:
+4 8 9 11 20 24 25 27 31 35 40 
+
+20 8 4 11 9 31 25 24 27 35 40 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+// AVL树节点结构
+typedef struct AVLnode {
+    int key;        // 关键词
+    int height;     // 以该结点为根的子树高度
+    struct AVLnode* left, * right; // 左右子节点指针
+} AVLnode;
+
+// 创建一个新节点
+AVLnode* newNode(int K) {
+    AVLnode* node = (AVLnode*)malloc(sizeof(AVLnode));
+    node->key = K;
+    node->height = 0; // 新节点的高度初始化为0
+    node->left = node->right = NULL; // 左右子节点初始化为NULL
+    return node;
+}
+
+// 获取节点的高度
+int Height(AVLnode* t) {
+    return (t == NULL) ? -1 : t->height; // 如果节点为空，返回-1，否则返回节点的高度
+}
+
+// 返回两个整数中的最大值
+int max(int a, int b) {
+    return (a > b) ? a : b;
+}
+
+// 更新节点的高度
+void UpdateHeight(AVLnode* t) {
+    t->height = max(Height(t->left), Height(t->right)) + 1; // 高度为左右子树高度的最大值加1
+}
+
+// 右旋操作（LL情况）
+void LL(AVLnode*& A) {
+    AVLnode* B = A->left; // B是A的左子节点
+    A->left = B->right;   // A的左子节点指向B的右子节点
+    B->right = A;         // B的右子节点指向A
+    UpdateHeight(A);      // 更新A的高度
+    UpdateHeight(B);      // 更新B的高度
+    A = B;                // A现在指向B
+}
+
+// 左旋操作（RR情况）
+void RR(AVLnode*& A) {
+    AVLnode* B = A->right; // B是A的右子节点
+    A->right = B->left;    // A的右子节点指向B的左子节点
+    B->left = A;           // B的左子节点指向A
+    UpdateHeight(A);       // 更新A的高度
+    UpdateHeight(B);       // 更新B的高度
+    A = B;                // A现在指向B
+}
+
+// 先左旋再右旋（LR情况）
+void LR(AVLnode*& A) {
+    RR(A->left); // 对A的左子节点进行RR旋转
+    LL(A);       // 对A进行LL旋转
+}
+
+// 先右旋再左旋（RL情况）
+void RL(AVLnode*& A) {
+    LL(A->right); // 对A的右子节点进行LL旋转
+    RR(A);        // 对A进行RR旋转
+}
+
+// 重新平衡树
+void ReBalance(AVLnode*& t) {
+    if (t == NULL) return;
+
+    // 左子树比右子树高2
+    if (Height(t->left) - Height(t->right) == 2) {
+        if (Height(t->left->left) >= Height(t->left->right))
+            LL(t); // LL情况
+        else
+            LR(t); // LR情况
+    }
+    // 右子树比左子树高2
+    else if (Height(t->right) - Height(t->left) == 2) {
+        if (Height(t->right->right) >= Height(t->right->left))
+            RR(t); // RR情况
+        else
+            RL(t); // RL情况
+    }
+
+    UpdateHeight(t); // 更新当前节点的高度
+}
+
+// 插入节点
+void Insert(AVLnode*& root, int K) {
+    if (root == NULL)
+        root = newNode(K); // 如果树为空，创建新节点
+    else if (K < root->key)  
+        Insert(root->left, K); // 如果K小于当前节点的key，递归插入左子树
+    else if (K > root->key) 
+        Insert(root->right, K); // 如果K大于当前节点的key，递归插入右子树
+    ReBalance(root); // 插入后重新平衡树
+}
+
+// 删除节点
+void Remove(AVLnode*& root, int K) {
+    if (root == NULL) return;
+
+    if (K < root->key)
+        Remove(root->left, K); // 如果K小于当前节点的key，递归删除左子树
+    else if (K > root->key)
+        Remove(root->right, K); // 如果K大于当前节点的key，递归删除右子树
+    else if (root->left != NULL && root->right != NULL) {
+        // 如果当前节点有两个子节点
+        AVLnode* s = root->right;
+        while (s->left != NULL) s = s->left; // 找到右子树中的最小节点
+        root->key = s->key; // 用最小节点的key替换当前节点的key
+        Remove(root->right, s->key); // 递归删除右子树中的最小节点
+    }
+    else {
+        // 如果当前节点只有一个子节点或没有子节点
+        AVLnode* oldroot = root;
+        root = (root->left != NULL) ? root->left : root->right; // 用子节点替换当前节点
+        free(oldroot); // 释放旧节点的内存
+    }
+
+    ReBalance(root); // 删除后重新平衡树
+}
+
+// 访问节点数据
+void visit(int data) {
+    printf("%d ", data); // 打印节点数据
+}
+
+// 中序遍历
+void Inorder(AVLnode* root) {
+    if (root == NULL) return;
+    Inorder(root->left);  // 递归遍历左子树
+    visit(root->key);     // 访问当前节点
+    Inorder(root->right); // 递归遍历右子树
+}
+
+// 前序遍历
+void Preorder(AVLnode* root) {
+    if (root == NULL) return;
+    visit(root->key);     // 访问当前节点
+    Preorder(root->left); // 递归遍历左子树
+    Preorder(root->right); // 递归遍历右子树
+}
+
+// 主函数
+int main() {
+    AVLnode* root = NULL; // 初始化AVL树为空
+    int T;
+    char op[10];
+    int key;
+
+    scanf("%d", &T); // 读取操作次数
+
+    for (int i = 0; i < T; i++) {
+        scanf("%s %d", op, &key); // 读取操作类型和key
+
+        if (strcmp(op, "Insert") == 0) {
+            Insert(root, key); // 插入操作
+        }
+        else if (strcmp(op, "Remove") == 0) {
+            Remove(root, key); // 删除操作
+        }
+    }
+
+    Inorder(root); // 中序遍历
+    printf("\n\n");
+    Preorder(root); // 前序遍历
+
+    return 0;
+}

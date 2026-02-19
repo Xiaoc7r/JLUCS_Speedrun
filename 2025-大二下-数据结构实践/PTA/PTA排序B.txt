@@ -1,0 +1,186 @@
+事实上，STL的sort函数在上一题（基础版）的基础上，还采用了下列优化手段，以进一步提升快速排序算法的效率。
+
+（3）“三数取中”选基准元素。不是选取第一个元素作为基准元素，而是在当前子数组中选取3个元素，取中间大的那个元素作为基准元素。从而保证选出的基准元素不是子数组的最小元素，也不是最大元素，避免Partition分到子数组最边上，以降低最坏情况发生的概率。
+为确保本题答案唯一，本算法的实现请以教材为准，即普林斯顿大学Sedgewick教授给出的方法：若当前子数组是R[m]…R[n]，选取R[m]、R[(m+n)/2]和R[n]的中位数作为基准元素。先将R[(m+n)/2]与R[m+1]交换；若R[m+1]比R[n]大，交换二者；若R[m]比R[n]大，交换二者；若R[m+1]比R[m]大，交换二者。
+
+（4）尾递归转为循环。即将传统快速排序代码
+
+void QuickSort(int R[],int m,int n){
+   if(n - m + 1 > threshold){
+        int j = Partition(R, m, n); 
+        QuickSort(R, m, j-1);  //递归处理左区间
+        QuickSort(R, j+1, n);  //递归处理右区间，尾递归
+     }
+}
+转换为
+
+void QuickSort(int R[],int m,int n){
+   while(n - m + 1 > threshold){    //注意此处不是if，而是while
+        int j = Partition(R, m, n); 
+        QuickSort(R, m, j-1);  //递归处理左区间
+        m = j+1;  //通过while循环处理右区间，从而消除尾递归
+     }
+}
+
+即先递归处理左区间，后循环处理右区间，从而消除一个尾递归，以减少递归调用带来的时空消耗。
+这里需注意，尾递归转循环后，转入堆排序的时机不仅仅是递归深度达到2logn，而是递归深度和while循环迭代的次数加一起达到2logn时转入堆排序。
+
+（5）优先处理短区间。在上述策略（4）的基础上进一步改进，不是按固定次序处理左右子区间（每次都先处理左区间、后处理右区间），而是先（通过递归）处理左右两个子区间中“较短的那个区间”，然后再（通过循环）处理两个子区间中“较长的那个区间”。从而使每次递归处理的子数组长度至少缩减一半，使最坏情况下递归深度（算法最坏情况空间复杂度）为logn。
+
+（6）三路分划（3-Way Partition）。当重复元素很多时，传统快速排序效率较低。可修改Partition操作，不是把当前数组划分为两部分，而是三部分：小于基准元素K的元素放在左边，等于K的元素放在中间，大于K的元素在右边。接下来仅需对小于K的左半部分子数组和大于K的右半部分子数组进行排序。中间等于K的所有元素都已就位，无需处理。
+为确保本题答案唯一，此处请采用如下做法：若当前子数组是R[m]…R[n]，可设置3个指针，前指针i，中指针j，后指针k。初始时i和j指向第一个元素，k指向最后一个元素；指针j从左往右扫描数组：
+
+若R[j]小于基准元素，交换R[j]和R[i], i++, j++；
+若R[j]大于基准元素，交换R[j]和R[k], k--；
+若R[j]等于基准元素，j++；
+通过指针j的遍历，使小于基准元素的元素换到当前子数组左侧，大于基准元素的元素换到右侧。当j扫描完当前子数组后，R[m]…R[i-1]即小于基准元素的元素，R[i]…R[k]即等于基准元素的元素，R[k+1]…R[n]即大于基准元素的元素。
+
+
+在本题中，请你在之前实现的STL sort()初级版的基础上，进一步实现上述优化策略。
+
+
+
+void swap(int* a, int* b) {
+    int temp = *a;
+    *a = *b;
+    *b = temp;
+}
+
+void Partition3(int R[], int m, int n, int* lt, int* gt) {
+    int mid = (m + n) / 2;
+    swap(&R[mid], &R[m + 1]);
+    
+    if (R[m + 1] > R[n]) swap(&R[m + 1], &R[n]);
+    if (R[m] > R[n]) swap(&R[m], &R[n]);
+    if (R[m + 1] > R[m]) swap(&R[m + 1], &R[m]);
+    
+    int pivot = R[m];
+    int i = m, j = m, k = n;
+
+    while (j <= k) {
+        if (R[j] < pivot) {
+            swap(&R[j], &R[i]);
+            i++; j++;
+        }
+        else if (R[j] > pivot) {
+            swap(&R[j], &R[k]);
+            k--;
+        }
+        else j++;
+    }
+
+    *lt = i;
+    *gt = k + 1;
+}
+
+void MaxHeapify(int R[], int i, int heap_size) {
+    int largest = i;
+    int left = 2 * i;
+    int right = 2 * i + 1;
+    int temp;
+
+    if (left <= heap_size && R[left] > R[largest])
+        largest = left;
+
+    if (right <= heap_size && R[right] > R[largest])
+        largest = right;
+
+    if (largest != i) {
+        temp = R[i];
+        R[i] = R[largest];
+        R[largest] = temp;
+        MaxHeapify(R, largest, heap_size);
+    }
+}
+
+void BuildMaxHeap(int R[], int heap_size) {
+    int i;
+    for (i = heap_size / 2; i >= 1; i--) {
+        MaxHeapify(R, i, heap_size);
+    }
+}
+
+void HeapSort(int R[], int m, int n) {
+    int length = n - m + 1;
+    int* temp;
+    int i;
+    int temp_swap;
+    temp = (int*)malloc((length + 1) * sizeof(int));
+    for (i = 1; i <= length; i++) {
+        temp[i] = R[m + i - 1];
+    }
+
+
+    BuildMaxHeap(temp, length);
+    printf("Heap:");
+    for (i = 1; i <= length; i++) {
+        printf("%d ", temp[i]);
+    }
+    printf("\n");
+
+    for (i = length; i > 1; i--) {
+        temp_swap = temp[1];
+        temp[1] = temp[i];
+        temp[i] = temp_swap;
+        MaxHeapify(temp, 1, i - 1);
+    }
+
+    for (i = 1; i <= length; i++) {
+        R[m + i - 1] = temp[i];
+    }
+}
+
+void InsertionSort(int R[], int n) {
+    int i, j, K;
+    for (i = 2; i <= n; i++) {
+        K = R[i];
+        j = i - 1;
+        while (j >= 1 && R[j] > K) {
+            R[j + 1] = R[j];
+            j--;
+        }
+        R[j + 1] = K;
+    }
+}
+
+void QuickSort3(int R[], int m, int n, int max_depth, int current_depth) {
+    extern int threshold; 
+    while (n - m + 1 > threshold) {
+        if (current_depth >= max_depth) {
+            HeapSort(R, m, n);
+            return;
+        }
+
+        int lt, gt;
+        Partition3(R, m, n, &lt, &gt);
+        
+        int left_length = lt - m;
+        int right_length = n - gt + 1;
+        
+        if (left_length <= right_length) {
+            QuickSort3(R, m, lt - 1, max_depth, current_depth + 1);
+            m = gt;
+        }
+        else {
+            QuickSort3(R, gt, n, max_depth, current_depth + 1);
+            n = lt - 1;
+        }
+        current_depth++;
+    }
+}
+
+void sort(int R[], int n) {
+    int depth_limit = (int)(2 * log(n) / log(2));
+    int i;
+
+    printf("depth_limit:%d\n", depth_limit);
+    QuickSort3(R, 1, n, depth_limit, 0);
+    
+    printf("Intermediate:");
+    for (i = 1; i <= n; i++) {
+        printf("%d ", R[i]);
+    }
+    printf("\n");
+    
+    InsertionSort(R, n);
+}
