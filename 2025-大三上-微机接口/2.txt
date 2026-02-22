@@ -1,0 +1,152 @@
+基础实验 
+;========================================================================
+
+          实验2_1  规则字写存储器
+ ;========================================================================
+
+
+
+CODE 	SEGMENT
+		ASSUME	CS:CODE
+START	PROC FAR
+		MOV AX,8000H		
+		MOV DS,AX
+AA0:	MOV SI,0000H		
+		MOV CX,0010H		
+		MOV AX,0000H
+AA1:	MOV [SI],AX
+		INC AX
+		INC SI
+		INC SI
+		LOOP AA1
+		MOV AH,4CH
+		INT 21H
+START 	ENDP
+CODE 	ENDS
+		END START
+运行项目并下载源码
+
+选做实验
+
+
+;========================================================================
+
+        实验2_2  非规则字写存储器
+;========================================================================
+
+CODE 	SEGMENT
+		ASSUME	CS:CODE
+START	PROC FAR
+		MOV AX,8000H
+		MOV DS,AX
+AA0:	MOV SI,0000H		
+		MOV CX,000FH		
+		MOV AX,0100H
+		MOV [SI],00H
+		INC SI
+AA1:	MOV [SI],AX
+		INC AH
+		INC SI
+		INC SI
+		LOOP AA1
+		MOV [SI],00H
+		MOV AH,4CH
+		INT 21H
+START 	ENDP
+CODE 	ENDS
+		END START
+运行项目并下载源码
+
+;========================================================================
+
+        实验2_3  字节写存储器
+;========================================================================
+
+CODE SEGMENT
+	ASSUME CS:CODE
+START PROC FAR
+	MOV AX,8000H
+	MOV DS,AX
+	MOV CX,010H
+	MOV SI,0
+	MOV AL,0
+AA0:
+	MOV [SI], AL
+	INC AL
+	INC SI
+	MOV [SI],BYTE PTR 00H
+	INC SI
+	LOOP AA0
+	MOV AH,4CH
+	INT 21H
+START ENDP
+CODE ENDS
+	END START
+运行项目并下载源码
+
+拓展
+结合实验一和实验二，使用开关控制写存储器方式
+
+（比如，K0规则字写，K1非规则字写，K2字节写）
+
+ A8255 EQU 0640H
+ B8255 EQU 0642H
+ C8255 EQU 0644H
+ MODE8255 EQU 0646H
+ 
+ CODE SEGMENT
+	ASSUME CS:CODE
+ START:
+ 	MOV AX,8000H
+	MOV DS,AX
+	MOV DX,MODE8255
+   	MOV AL,90H
+   	OUT DX,AL
+   	MOV CX,010H
+	MOV BX,0
+	MOV SI,0
+ MAIN:    
+    MOV DX,A8255
+    IN AL,DX
+    CMP AL,0
+    JZ MAIN
+    CMP AL,0FFH
+	JZ STOP
+    
+    AND AL,07H
+    CMP AL,01H
+    JE AA0
+    CMP AL,04H 
+    JE AA1
+    MOV SI,1
+    CMP AL,02H
+    JE AA0
+    JMP MAIN
+ AA0:
+	MOV [SI], BX
+	INC BX
+	INC SI
+	INC SI
+	LOOP AA0
+	JMP STOP
+ AA1:
+	MOV [SI], BL
+	INC BL
+	INC SI
+	MOV [SI],BYTE PTR 00H
+	INC SI
+	LOOP AA1
+ STOP:
+ 	MOV AH,4CH
+ 	INT 21H   
+ CODE ENDS   
+ 	END START
+运行项目并下载源码
+
+————————————————
+版权声明：本文为CSDN博主「GineLee」的原创文章，遵循CC 4.0 BY-SA版权协议，转载请附上原文出处链接及本声明。
+原文链接：https://blog.csdn.net/m0_73654355/article/details/145061902
+
+————————————————
+版权声明：本文为CSDN博主「GineLee」的原创文章，遵循CC 4.0 BY-SA版权协议，转载请附上原文出处链接及本声明。
+原文链接：https://blog.csdn.net/m0_73654355/article/details/145061902

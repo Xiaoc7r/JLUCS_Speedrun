@@ -1,0 +1,475 @@
+基础实验 & 选做实验
+;========================================================================
+
+          实验5  D/A转换
+ ;========================================================================
+
+
+
+
+
+DATA	SEGMENT
+		FLAG DB 00H
+DATA	ENDS
+CODE	SEGMENT
+		ASSUME CS:CODE, DS:DATA
+START:
+		MOV AX, 0000H
+		MOV DS, AX
+		
+		MOV AX, OFFSET MIR7
+		MOV SI, 003CH
+		MOV [SI], AX
+		MOV AX, CS
+		MOV SI, 003EH
+		MOV [SI], AX
+		
+		CLI
+		MOV AL, 11H
+		OUT 20H, AL
+		MOV AL, 08H
+		OUT 21H, AL
+		MOV AL, 04H
+		OUT 21H, AL
+		MOV AL, 07H
+		OUT 21H, AL
+		MOV AL, 2FH
+		OUT 21H, AL
+		STI
+		
+MAIN:
+		CMP FLAG, 00H
+		JE	JUCHI
+		CMP FLAG, 01H
+		JE	JUXING
+		CMP FLAG, 02H
+		JE  SANJIAO
+		CMP FLAG, 03H
+		JE	JIETI1
+		JMP MAIN
+		
+		MOV CX, 04H
+JUCHI:
+		CMP FLAG, 00H
+		JNE MAIN
+		MOV DX, 0600H
+		MOV AL, 00H
+JC1:
+		OUT DX, AL
+		CALL SHORTDELAY
+		CMP AL, 0FFH
+		JE JC2
+		
+		INC AL
+		JMP JC1
+JC2:
+		LOOP JUCHI
+		
+		MOV CX, 04H
+JUXING:
+		CMP FLAG, 01H
+		JNE MAIN
+		MOV DX, 0600H
+		MOV AL, 00H
+		OUT DX, AL
+		CALL LONGDELAY
+		MOV AL, 0FFH
+		OUT DX, AL
+		CALL LONGDELAY
+		LOOP JUXING
+ 
+ZHONGJIAN: JMP MAIN
+	
+		MOV CX, 04H
+SANJIAO:
+SJ1:
+		CMP FLAG, 02H
+		JNE MAIN
+		MOV DX, 0600H
+		OUT DX, AL
+		
+		CALL SHORTDELAY
+		CMP AL, 0FFH
+		JE SJ2
+		INC AL
+		JMP SJ1
+SJ2:
+		MOV DX, 0600H
+		OUT DX, AL
+		CALL SHORTDELAY
+		CMP AL, 00H
+		JE SJ3
+		DEC AL
+		JMP SJ2
+SJ3:
+		LOOP SANJIAO
+		
+JIETI1:
+		MOV CX, 0FH
+		MOV AX, 0FEH
+		
+		MOV BL, 05H
+		DIV BL
+		MOV BL, AL
+		MOV BH, 00H
+JIETI2:
+		CMP FLAG, 03H
+		;JNE MAIN
+		JNE ZHONGJIAN
+		MOV AX, 0000H
+JT1:
+		MOV DX, 0600H
+		OUT DX, AL
+		CMP AX, 00FFH
+		JAE JT2
+		CALL LONGDELAY
+		
+		ADD AX, BX
+		JMP JT1
+JT2:
+		LOOP JIETI2
+		
+MIR7:
+		PUSH AX
+		
+		INC FLAG 
+		CMP FLAG,04H
+		JE SET0
+		JMP QUIT
+		
+SET0:
+		MOV FLAG, 00H
+QUIT:
+		POP AX
+		IRET
+ 
+SHORTDELAY:
+		PUSH CX
+		MOV CX, 01FFH
+D1:
+		PUSH AX
+		POP AX
+		LOOP D1
+		POP CX
+		RET
+ 
+LONGDELAY:
+		PUSH CX
+		MOV CX, 0FFFFH
+D2:
+		PUSH AX
+		POP AX
+		LOOP D2
+		POP CX
+		RET
+		
+CODE ENDS
+	 END START
+————————————————
+版权声明：本文为CSDN博主「GineLee」的原创文章，遵循CC 4.0 BY-SA版权协议，转载请附上原文出处链接及本声明。
+原文链接：https://blog.csdn.net/m0_73654355/article/details/145148381
+
+
+
+
+; ====================== 区块1：数据段定义区【波形切换状态存储】 ======================
+; 作用：定义全局标志位`FLAG`，用于存储当前波形的选择状态（00H=锯齿波、01H=矩形波、02H=三角波、03H=阶梯波）
+; 【可灵活修改的行及效果】：
+; 1. FLAG DB 00H → 变量名可改（如WAVE_MODE DB 00H，提升可读性，需同步修改所有FLAG引用处）
+; 2. FLAG DB 00H → 初始值可改（如01H，程序启动后默认显示矩形波；02H默认显示三角波）
+; 3. 可新增变量：如WAVE_AMP DB 0FFH（存储波形幅值，统一修改所有波形的幅值）、WAVE_CNT DB 04H（存储波形循环次数，统一控制重复次数）
+; 4. 可新增数组：如WAVE_PARAM DW 01FFH,0FFFFH（存储短/长延时的计数值，统一管理延时）
+DATA	SEGMENT
+		FLAG DB 00H        ; 波形切换标志位：00H=锯齿波，01H=矩形波，02H=三角波，03H=阶梯波（改初始值换默认波形）
+DATA	ENDS
+
+; ====================== 区块2：代码段声明区【汇编格式】 ======================
+; 作用：汇编程序的固定格式，告诉编译器代码段、数据段的归属关系
+; 【可灵活修改的行及效果】：无（汇编语法固定，修改会导致程序报错）
+CODE	SEGMENT
+		ASSUME CS:CODE, DS:DATA  ; 绑定CS到CODE段，DS到DATA段
+
+; ====================== 区块3：中断向量表设置区【单脉冲中断入口配置】 ======================
+; 作用：将单脉冲开关触发的中断处理子程序`MIR7`的地址写入中断向量表，让CPU能找到中断处理逻辑（实现波形切换）
+; 【可灵活修改的行及效果】：
+; 1. MOV AX, OFFSET MIR7 → 修改MIR7为其他子程序名（如MIR8），更换中断处理程序（如需新增波形切换的额外逻辑）
+; 2. MOV SI, 003CH → 修改003CH为其他中断向量地址，更换中断号（适配实验箱的单脉冲开关接线）：
+;    - 003CH：对应中断号0FH（8259从片中断）
+;    - 0020H：对应中断号08H（8259主片定时器中断）
+;    - 0024H：对应中断号09H（键盘中断），需匹配硬件接线
+; 3. MOV SI, 003EH → 需与003CH同步偏移（如003CH改0020H，此行改0022H），存储中断程序的段地址
+; 4. MOV AX, CS → 若中断程序在其他段，需改为对应段的段地址（单模块程序无需修改）
+START:
+		MOV AX, 0000H
+		MOV DS, AX                ; 将DS指向中断向量表的基地址（0000H段）
+		
+		MOV AX, OFFSET MIR7       ; 获取中断子程序MIR7的偏移地址（改MIR7换中断程序）
+		MOV SI, 003CH             ; 中断向量表的偏移地址存储位置（改003CH换中断号）
+		MOV [SI], AX              ; 将偏移地址写入向量表
+		MOV AX, CS                ; 获取MIR7的段地址（单模块程序无需修改）
+		MOV SI, 003EH             ; 中断向量表的段地址存储位置（与上一行同步修改）
+		MOV [SI], AX              ; 将段地址写入向量表
+
+; ====================== 区块4：8259中断控制器初始化区【单脉冲中断使能】 ======================
+; 作用：配置8259中断控制器的工作模式，开启单脉冲开关的中断响应（实现FLAG的递增切换）
+; 【可灵活修改的行及效果】：
+; 1. MOV AL, 11H → 修改11H为其他ICW1控制字，更换中断触发方式/级联模式：
+;    - 11H：边沿触发、多片8259、需要ICW4（适配单脉冲开关的边沿触发）
+;    - 10H：边沿触发、单片8259、需要ICW4（简化模式）
+;    - 01H：电平触发、单片8259、需要ICW4（适配电平触发的开关）
+; 2. MOV AL, 08H → 修改08H为其他ICW2控制字，更换8259的中断号基址（如07H/09H，需与中断向量表同步）
+; 3. MOV AL, 04H → 修改04H为其他ICW3控制字，更换8259的级联方式（如02H/08H，适配主从片接线）
+; 4. MOV AL, 07H → 修改07H为其他ICW4控制字，更换中断结束方式/CPU模式：
+;    - 07H：非自动结束中断、缓冲模式、8086模式（默认）
+;    - 03H：自动结束中断、缓冲模式、8086模式（简化中断处理，无需手动发EOI）
+; 5. MOV AL, 2FH → 修改2FH为其他OCW1控制字，屏蔽/开启不同的中断源：
+;    - 00H：开启所有中断（适合多中断源实验）
+;    - FFH：屏蔽所有中断（仅测试波形生成，无需切换）
+;    - 2FH：仅开启单脉冲开关对应的中断（适配本实验）
+		CLI                         ; 关中断，防止初始化8259时被中断信号干扰
+		MOV AL, 11H                ; ICW1：8259初始化命令1（改11H换触发方式）
+		OUT 20H, AL                ; 写入8259主片命令口（20H）
+		MOV AL, 08H                ; ICW2：中断号基址（改08H换基址）
+		OUT 21H, AL                ; 写入8259主片数据口（21H）
+		MOV AL, 04H                ; ICW3：主从片级联方式（改04H换级联）
+		OUT 21H, AL
+		MOV AL, 07H                ; ICW4：中断结束方式（改07H换结束方式）
+		OUT 21H, AL
+		MOV AL, 2FH                ; OCW1：中断屏蔽字（改2FH换屏蔽的中断）
+		OUT 21H, AL
+		STI                         ; 开中断，允许响应单脉冲开关的中断
+
+; ====================== 区块5：主循环波形选择区【核心切换逻辑】 ======================
+; 作用：循环检测`FLAG`标志位的值，根据值跳转到对应波形的生成子程序，实现“中断改FLAG→主循环切波形”的核心逻辑
+; 【可灵活修改的行及效果】：
+; 1. CMP FLAG, 00H → 修改00H为其他值（如04H），新增波形的判断条件（如需添加正弦波/方波）
+; 2. JE	JUCHI → 修改JUCHI为新的波形子程序名（如ZHENGXIAN），匹配新增的波形
+; 3. 可新增判断行：如`CMP FLAG, 04H JE ZHENGXIAN`，实现第五种波形的切换
+; 4. JMP MAIN → 可改为JMP其他标号（如IDLE），实现波形暂停/继续的逻辑
+MAIN:
+		CMP FLAG, 00H              ; 判断是否为锯齿波模式（改00H换判断值）
+		JE	JUCHI                   ; 跳转到锯齿波生成子程序（改JUCHI换波形子程序）
+		CMP FLAG, 01H              ; 判断是否为矩形波模式
+		JE	JUXING                  ; 跳转到矩形波生成子程序
+		CMP FLAG, 02H              ; 判断是否为三角波模式
+		JE  SANJIAO                ; 跳转到三角波生成子程序
+		CMP FLAG, 03H              ; 判断是否为阶梯波模式
+		JE	JIETI1                  ; 跳转到阶梯波生成子程序
+		JMP MAIN                   ; 无匹配模式，继续循环（可改JMP实现错误处理）
+
+; ====================== 区块6：锯齿波生成子程序区【波形1：锯齿波】 ======================
+; 作用：通过“AL从00H递增到0FFH→循环输出”生成锯齿波，输出到软件模拟示波器的端口
+; 【可灵活修改的行及效果】：
+; 1. MOV CX, 04H → 修改04H为其他值（如02H/08H/0FH），调整锯齿波的循环次数：
+;    - 02H：循环2次后回到主循环（波形重复2次）
+;    - 08H：循环8次（波形重复8次）
+;    - 00H：无限循环（删除LOOP JUCHI，直接JMP JC1）
+; 2. MOV DX, 0600H → 修改0600H为其他端口地址（如0640H/0200H），更换波形的输出外设：
+;    - 0600H：软件模拟示波器（本实验）
+;    - 0640H：8255的A口（输出到LED/DA转换器）
+; 3. MOV AL, 00H → 修改00H为其他值（如10H/20H），调整锯齿波的起始幅值（从指定值开始递增）
+; 4. CMP AL, 0FFH → 修改0FFH为其他值（如7FH/3FH），调整锯齿波的最大幅值：
+;    - 7FH：幅值0~127（半幅锯齿波）
+;    - 3FH：幅值0~63（1/4幅锯齿波）
+; 5. INC AL → 修改为ADD AL, n（如ADD AL,2/ADD AL,5），调整锯齿波的递增步长：
+;    - ADD AL,2：步长2（锯齿波更“陡”，频率更快）
+;    - ADD AL,5：步长5（锯齿波更稀疏）
+; 6. CALL SHORTDELAY → 改为CALL LONGDELAY，延长每个幅值的输出时间（锯齿波频率变慢）
+; 7. LOOP JUCHI → 可删除，实现锯齿波无限生成（无需循环次数限制）
+		MOV CX, 04H                ; 锯齿波循环次数（改04H换重复次数）
+JUCHI:
+		CMP FLAG, 00H              ; 再次检测FLAG，防止中断切换波形后继续生成锯齿波
+		JNE MAIN
+		MOV DX, 0600H              ; 波形输出端口（改0600H换输出外设）
+		MOV AL, 00H                ; 锯齿波起始幅值（改00H换起始值）
+JC1:
+		OUT DX, AL                 ; 输出当前幅值到示波器
+		CALL SHORTDELAY            ; 短延时，控制波形频率（改LONGDELAY变慢）
+		CMP AL, 0FFH               ; 判断是否到最大幅值（改0FFH换最大幅值）
+		JE JC2                     ; 到最大幅值，跳转到循环计数
+		
+		INC AL                     ; 幅值递增1（改ADD AL,n换步长）
+		JMP JC1
+JC2:
+		LOOP JUCHI                 ; 循环次数减1，未到0则继续生成锯齿波（可删除实现无限循环）
+
+; ====================== 区块7：矩形波生成子程序区【波形2：矩形波】 ======================
+; 作用：通过“输出低电平（00H）→长延时→输出高电平（0FFH）→长延时→循环”生成矩形波
+; 【可灵活修改的行及效果】：
+; 1. MOV CX, 04H → 修改04H为其他值，调整矩形波的循环次数（同锯齿波）
+; 2. MOV DX, 0600H → 修改0600H换输出外设（同锯齿波）
+; 3. MOV AL, 00H → 修改00H为其他值（如3FH），调整矩形波的低电平幅值（非零低电平）
+; 4. MOV AL, 0FFH → 修改0FFH为其他值（如7FH），调整矩形波的高电平幅值（非满幅高电平）
+; 5. CALL LONGDELAY → 改为CALL SHORTDELAY，缩短高低电平的持续时间（矩形波频率变快）
+; 6. 可新增延时差：如低电平CALL SHORTDELAY，高电平CALL LONGDELAY，生成占空比非50%的矩形波
+; 7. LOOP JUXING → 可删除，实现矩形波无限生成
+		MOV CX, 04H                ; 矩形波循环次数（改04H换重复次数）
+JUXING:
+		CMP FLAG, 01H              ; 再次检测FLAG，防止中断切换波形后继续生成矩形波
+		JNE MAIN
+		MOV DX, 0600H              ; 波形输出端口（改0600H换输出外设）
+		MOV AL, 00H                ; 矩形波低电平幅值（改00H换低电平值）
+		OUT DX, AL                 ; 输出低电平
+		CALL LONGDELAY             ; 长延时，控制低电平持续时间（改SHORTDELAY变快）
+		MOV AL, 0FFH               ; 矩形波高电平幅值（改0FFH换高电平值）
+		OUT DX, AL                 ; 输出高电平
+		CALL LONGDELAY             ; 长延时，控制高电平持续时间
+		LOOP JUXING                ; 循环次数减1，未到0则继续生成矩形波（可删除实现无限循环）
+
+; ====================== 区块8：三角波跳转标号区【格式占位】 ======================
+; 作用：三角波生成完成后跳回主循环的占位标号，无实际逻辑（可删除，直接在三角波子程序中JMP MAIN）
+; 【可灵活修改的行及效果】：
+; 1. ZHONGJIAN: JMP MAIN → 可改为JMP其他标号（如IDLE），实现波形暂停；也可删除此标号，将三角波/阶梯波的跳转改为JMP MAIN
+ZHONGJIAN: JMP MAIN                ; 波形跳转占位（可删除，直接JMP MAIN）
+
+; ====================== 区块9：三角波生成子程序区【波形3：三角波】 ======================
+; 作用：通过“AL从00H递增到0FFH（上升沿）→递减到00H（下降沿）→循环”生成三角波
+; 【可灵活修改的行及效果】：
+; 1. MOV CX, 04H → 修改04H为其他值，调整三角波的循环次数（同锯齿波）
+; 2. MOV DX, 0600H → 修改0600H换输出外设（同锯齿波）
+; 3. CMP AL, 0FFH → 修改0FFH为其他值，调整三角波的峰值幅值（如7FH=峰值127）
+; 4. CMP AL, 00H → 修改00H为其他值（如10H），调整三角波的谷值幅值（非零谷值）
+; 5. INC AL/DEC AL → 改为ADD AL,n/SUB AL,n（如ADD AL,2/SUB AL,2），调整三角波的升降步长
+; 6. CALL SHORTDELAY → 改为CALL LONGDELAY，延长升降沿的时间（三角波频率变慢）
+; 7. LOOP SANJIAO → 可删除，实现三角波无限生成
+; 8. 可新增升降沿延时差：如上升沿CALL SHORTDELAY，下降沿CALL LONGDELAY，生成不对称三角波
+		MOV CX, 04H                ; 三角波循环次数（改04H换重复次数）
+SANJIAO:
+SJ1:
+		CMP FLAG, 02H              ; 再次检测FLAG，防止中断切换波形后继续生成三角波
+		JNE MAIN
+		MOV DX, 0600H              ; 波形输出端口（改0600H换输出外设）
+		OUT DX, AL                 ; 输出当前幅值（上升沿）
+		CALL SHORTDELAY            ; 短延时，控制上升沿频率（改LONGDELAY变慢）
+		CMP AL, 0FFH               ; 判断是否到峰值幅值（改0FFH换峰值）
+		JE SJ2                     ; 到峰值，跳转到下降沿
+		INC AL                     ; 上升沿幅值递增1（改ADD AL,n换步长）
+		JMP SJ1
+SJ2:
+		MOV DX, 0600H              ; 波形输出端口（可与SJ1合并，仅需写一次）
+		OUT DX, AL                 ; 输出当前幅值（下降沿）
+		CALL SHORTDELAY            ; 短延时，控制下降沿频率
+		CMP AL, 00H                ; 判断是否到谷值幅值（改00H换谷值）
+		JE SJ3                     ; 到谷值，跳转到循环计数
+		DEC AL                     ; 下降沿幅值递减1（改SUB AL,n换步长）
+		JMP SJ2
+SJ3:
+		LOOP SANJIAO               ; 循环次数减1，未到0则继续生成三角波（可删除实现无限循环）
+
+; ====================== 区块10：阶梯波生成子程序区【波形4：阶梯波】 ======================
+; 作用：通过“按固定步长递增幅值→每个步长保持一定时间→循环”生成阶梯波，步长由`DIV BL`计算
+; 【可灵活修改的行及效果】：
+; 1. MOV CX, 0FH → 修改0FH为其他值（如05H/10H），调整阶梯波的循环次数
+; 2. MOV AX, 0FEH → 修改0FEH为其他值（如7FH），调整阶梯波的最大幅值基数（影响步长计算）
+; 3. MOV BL, 05H → 修改05H为其他值（如04H/08H），调整阶梯波的阶数：
+;    - 04H：4阶阶梯波（步长=255/4≈63）
+;    - 08H：8阶阶梯波（步长=255/8≈31）
+;    - 02H：2阶阶梯波（步长=127），阶数越少，阶梯越“宽”
+; 4. MOV DX, 0600H → 修改0600H换输出外设（同锯齿波）
+; 5. CMP AX, 00FFH → 修改00FFH为其他值（如007FH），调整阶梯波的终止幅值
+; 6. CALL LONGDELAY → 改为CALL SHORTDELAY，缩短每个阶梯的持续时间（阶梯波频率变快）
+; 7. ADD AX, BX → 修改为ADD AX, n（如ADD AX,10），直接指定阶梯步长（无需DIV计算）
+; 8. LOOP JIETI2 → 可删除，实现阶梯波无限生成
+; 9. 可新增阶梯幅值限制：如`CMP AL, 0FFH JE JT3`，防止幅值溢出
+JIETI1:
+		MOV CX, 0FH                ; 阶梯波循环次数（改0FH换重复次数）
+		MOV AX, 0FEH               ; 阶梯波幅值基数（改0FEH换基数）
+		
+		MOV BL, 05H                ; 阶梯波的阶数（改05H换阶数，如04H=4阶）
+		DIV BL                     ; 计算步长（AX/BL，商存AL，余数存AH）
+		MOV BL, AL                 ; 将步长存入BL，用于后续递增
+		MOV BH, 00H                ; 清空BH，保证BX为16位步长
+JIETI2:
+		CMP FLAG, 03H              ; 再次检测FLAG，防止中断切换波形后继续生成阶梯波
+		JNE ZHONGJIAN              ; 跳转到主循环（可改为JMP MAIN）
+		MOV AX, 0000H              ; 重置AX为0，开始新的阶梯循环
+JT1:
+		MOV DX, 0600H              ; 波形输出端口（改0600H换输出外设）
+		OUT DX, AL                 ; 输出当前阶梯的幅值
+		CMP AX, 00FFH              ; 判断是否到终止幅值（改00FFH换终止值）
+		JAE JT2                    ; 到终止幅值，跳转到循环计数
+		CALL LONGDELAY             ; 长延时，控制每个阶梯的持续时间（改SHORTDELAY变快）
+		
+		ADD AX, BX                 ; 幅值按步长递增（改ADD AX,n换步长）
+		JMP JT1
+JT2:
+		LOOP JIETI2                ; 循环次数减1，未到0则继续生成阶梯波（可删除实现无限循环）
+
+; ====================== 区块11：中断处理子程序区【波形切换核心】 ======================
+; 作用：单脉冲开关KK1触发中断后，执行此子程序：递增`FLAG`→判断是否到4种波形上限→重置为00H，实现波形循环切换
+; 【可灵活修改的行及效果】：
+; 1. PUSH AX/POP AX → 可新增PUSH/POP其他寄存器（如BX/CX/DX），保护更多寄存器（防止中断破坏主程序数据）
+; 2. INC FLAG → 修改为ADD FLAG, n（如ADD FLAG,2），实现隔波形切换（如锯齿波→三角波→锯齿波）
+; 3. CMP FLAG,04H → 修改04H为其他值（如05H），适配新增的波形（如第五种正弦波，FLAG=04H）
+; 4. MOV FLAG, 00H → 修改00H为其他值（如01H），波形切换到上限后默认切回矩形波（而非锯齿波）
+; 5. 可新增波形锁定逻辑：如`CMP FLAG, 02H JE LOCK`，实现三角波锁定（按单脉冲不切换）
+; 6. 可新增蜂鸣器提示：如`MOV DX,0640H MOV AL,0FFH OUT DX,AL`，切换波形时触发蜂鸣
+MIR7:
+		PUSH AX                    ; 保护AX寄存器（防止中断覆盖主程序的AX值，可新增PUSH BX/CX）
+		
+		INC FLAG                   ; FLAG递增1，切换下一个波形（改ADD FLAG,n换切换步长）
+		CMP FLAG,04H               ; 判断是否到4种波形的上限（改04H适配新增波形）
+		JE SET0                    ; 到上限，跳转到重置FLAG
+		JMP QUIT                   ; 未到上限，跳转到退出中断
+		
+SET0:
+		MOV FLAG, 00H              ; 重置FLAG为00H，切回锯齿波（改00H换默认切回的波形）
+QUIT:
+		POP AX                     ; 恢复AX寄存器（与PUSH对应，新增的PUSH需同步POP）
+		IRET                       ; 中断返回（固定指令，不可修改）
+
+; ====================== 区块12：短延时子程序区【波形频率控制（快）】 ======================
+; 作用：提供短延时，控制锯齿波/三角波的频率（延时越短，波形频率越快）
+; 【可灵活修改的行及效果】：
+; 1. MOV CX, 01FFH → 修改01FFH为其他值（如00FFH/03FFH），调整短延时的长度：
+;    - 00FFH：更短延时（波形频率更快，锯齿波/三角波更“密”）
+;    - 03FFH：更长延时（波形频率更慢，波形更舒展）
+;    - 0FFFFH：极长延时（短延时变成长延时）
+; 2. PUSH AX/POP AX → 可删除此空操作，减少延时（循环仅执行LOOP，耗时更短）
+; 3. 可新增外层循环：如`MOV BX,02H L2: LOOP D1 DEC BX JNZ L2`，实现多级短延时
+SHORTDELAY:
+		PUSH CX                    ; 保护CX寄存器（防止延时覆盖主程序的CX值）
+		MOV CX, 01FFH              ; 短延时计数值（改01FFH换短延时长度）
+D1:
+		PUSH AX                    ; 空操作：占用CPU周期，增加延时（可删除）
+		POP AX                     ; 空操作：占用CPU周期，增加延时（可删除）
+		LOOP D1                    ; CX减1，直到CX=0时退出短延时循环
+		POP CX                     ; 恢复CX寄存器
+		RET                        ; 子程序返回
+
+; ====================== 区块13：长延时子程序区【波形频率控制（慢）】 ======================
+; 作用：提供长延时，控制矩形波/阶梯波的频率（延时越短，波形频率越快）
+; 【可灵活修改的行及效果】：
+; 1. MOV CX, 0FFFFH → 修改0FFFFH为其他值（如0F000H/05000H），调整长延时的长度：
+;    - 0F000H：更短长延时（矩形波高低电平持续时间变短，频率变快）
+;    - 05000H：更短长延时（阶梯波每个阶梯的持续时间变短）
+;    - 01FFH：极短延时（长延时变成短延时）
+; 2. PUSH AX/POP AX → 可删除此空操作，减少延时（同短延时）
+; 3. 可新增外层循环：如`MOV BX,03H L3: LOOP D2 DEC BX JNZ L3`，实现多级长延时
+LONGDELAY:
+		PUSH CX                    ; 保护CX寄存器
+		MOV CX, 0FFFFH             ; 长延时计数值（改0FFFFH换长延时长度）
+D2:
+		PUSH AX                    ; 空操作：占用CPU周期，增加延时（可删除）
+		POP AX                     ; 空操作：占用CPU周期，增加延时（可删除）
+		LOOP D2                    ; CX减1，直到CX=0时退出长延时循环
+		POP CX                     ; 恢复CX寄存器
+		RET                        ; 子程序返回
+
+; ====================== 区块14：代码段结束区【汇编格式】 ======================
+; 作用：汇编程序的固定格式，标记代码段结束并指定程序的入口点
+; 【可灵活修改的行及效果】：无（修改会导致程序无法启动）
+CODE ENDS
+	 END START                    ; 代码段结束，指定程序入口为START标号
+
+
+
+考试 “代码裁缝” 速用技巧
+新增波形：在主循环添加CMP FLAG,04H JE ZHENGXIAN，新增ZHENGXIAN子程序（通过查表 / 公式生成正弦波），并修改中断子程序的CMP FLAG,05H；
+调整波形频率：修改SHORTDELAY/LONGDELAY的CX计数值，值越小频率越快，值越大频率越慢；
+调整波形幅值：将所有0FFH替换为自定义变量WAVE_AMP（数据段新增），统一修改所有波形的幅值；
+更换输出外设：将所有MOV DX,0600H替换为实验箱的 DA 转换器 / LED 端口（如 0640H），实现波形的硬件输出；
+修改切换逻辑：将中断子程序的INC FLAG改为ADD FLAG,2，实现 “锯齿波→三角波→锯齿波” 的隔项切换；
+调整阶梯波阶数：修改MOV BL,05H的05H，如 08H=8 阶阶梯波，02H=2 阶阶梯波；
+实现波形暂停：新增FLAG=04H为暂停模式，主循环检测到04H时JMP IDLE（空循环），中断切换时退出暂停。
+以上标注覆盖了代码中所有可改编的核心点，你可直接按区块复制、修改关键值，快速完成 “换汤不换药” 的相似考题（如 “新增正弦波”“调整波形频率 / 幅值 / 阶数”“更换输出外设”“修改波形切换逻辑” 等）。
