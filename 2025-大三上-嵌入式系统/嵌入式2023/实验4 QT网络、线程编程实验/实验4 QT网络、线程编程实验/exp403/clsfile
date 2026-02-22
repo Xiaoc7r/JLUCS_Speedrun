@@ -1,0 +1,8 @@
+#!/bin/sh
+rm *.pro
+rm *.o
+rm Makefile
+rm *.debug
+rm *.debug
+rm moc*.*
+

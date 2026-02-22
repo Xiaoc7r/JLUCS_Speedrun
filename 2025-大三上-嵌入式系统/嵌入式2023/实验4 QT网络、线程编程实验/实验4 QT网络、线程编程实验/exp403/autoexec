@@ -1,0 +1,5 @@
+#!/bin/sh
+/opt/qt/bin/qmake -project
+/opt/qt/bin/qmake
+
+

@@ -1,0 +1,23 @@
+
+
+setenv serverip 192.168.100.192
+setenv ipaddr 192.168.100.191
+setenv gatewayip 192.168.100.1
+setenv bootcmd ext4load mmc 2:1 0x48000000 uImage\;bootm 0x48000000
+setenv bootargs root=/dev/nfs nfsroot=192.168.100.192:/source/rootfs console=ttySAC0,115200 init=/linuxrc ip=192.168.100.191:::::eth0:off
+saveenv
+
+
+setenv serverip 192.168.11.78
+setenv ipaddr 192.168.11.191
+setenv gatewayip 192.168.11.1
+setenv bootcmd ext4load mmc 2:1 0x48000000 uImage\;bootm 0x48000000
+setenv bootargs root=/dev/nfs nfsroot=192.168.11.78:/source/rootfs console=ttySAC0,115200 init=/linuxrc ip=192.168.11.191:::::eth0:off
+saveenv
+
+
+ubuntu18.04
+/etc/network/interfaces
+
+
+ 
