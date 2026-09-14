@@ -342,6 +342,10 @@ https://www.bilibili.com/video/BV1EhJu6kEZG
 <details>
 <summary><h3>后记</h3></summary>
 
+写在这里突然想起，就直接引用知名计算机学习文档：csdiy.wiki 的后记吧，这种现状或许久久不会改变，希望大家能够做好自己，为自己的未来不断奋进。
+
+<img width="848" height="943" alt="image" src="https://github.com/user-attachments/assets/405ed143-d4e4-4cd5-b41f-da9cd4d4715d" />
+
 
 </details>
 
