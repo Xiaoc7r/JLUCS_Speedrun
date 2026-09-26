@@ -8,27 +8,30 @@
 
 写这篇攻略也是为了感谢一路上帮助过我的学长学姐和众多就业前辈，感激涕零，无以言表，谨以此回馈。
 
-
-<h3>前言</h3>
+## 前言
 
 我会从我自己本科就业的选择、方向、攻略、信息差等角度，去阐述一个全新的吉大内计算机学习视角。
 
 本文目前将会主要包含以下的部分（如果你有其他好的建议，欢迎邮件 [xxiaocr@gmail.com](mailto:xxiaocr@gmail.com) 或者在 Issue 里提问）：
 
-**1. 保研、考研、考公、留学、本科就业的选择与冲突**
+[**1. 保研、考研、考公、留学、本科就业的选择与冲突**](#part-1)
 
-**2. 本科就业视角下应该卷什么**
+[**2. 本科就业视角下应该卷什么**](#part-2)
 
-**3. 可执行的本科就业实践路线**
+[**3. 可执行的本科就业实践路线**](#part-3)
 
-**4. 本科就业中的常见误区与决策错误**
+[**4. 本科就业中的常见误区与决策错误**](#part-4)
 
 
 
 ---
 
+<a id="part-1"></a>
+
 <details>
-<summary><h3>1. 保研、考研、考公、留学、本科就业的选择与冲突</h3></summary>
+<summary><h2>1. 保研、考研、考公、留学、本科就业的选择与冲突</h2></summary>
+
+<br>
 
 ### 1.1 常规路线与吉大现状：
 在讨论到底该保研、考研、留学、考公还是直接就业以前，我们先把吉大的真实情况摆在桌面上。
@@ -93,13 +96,15 @@
 
 问题就在这里。如果你和大多数人一样，最后仍然需要学黑马 Java 后端去和本科生抢后端，那读三年研究生究竟给你带来了什么。是啊，硕士学历很有价值，它能扩大一部分岗位选择，也能让你进入一些本科进不去的单位，但代价同样非常明确：**两到三年的时间成本，以及导师、论文、毕业要求对实习自由度的限制，有可能损耗远远大于本科就业本身。** 。在计算机和AI这个变化极快的行业里，三年已经是天翻地覆的变化了。
 
-<img width="2699" height="1493" alt="c08efef7d9113ed7c995d97e23a08dac" src="https://github.com/user-attachments/assets/0a808f58-979a-4a58-8e84-0f2dc68f148b" />
+<p align="center">
+  <img width="88%" alt="c08efef7d9113ed7c995d97e23a08dac" src="https://github.com/user-attachments/assets/0a808f58-979a-4a58-8e84-0f2dc68f148b" />
+</p>
 
-https://b23.tv/83XR9Cv
+> [`https://b23.tv/83XR9Cv`](https://b23.tv/83XR9Cv)
 
 一些华五硕师兄建议的思路是：**先想清楚未来要什么，再决定要不要考研，千万不要先考上研究生再慢慢想以后干什么。倘若已经上了这条贼船，那就少在意课程和论文(除非你极爱学术，且不需要养家)，优先实习攒三年间的经历**
 
-**研究生本质上是一次需要计算投入产出比的人生选择。** 吉大的平台和考研环境完全支撑你这么做，但如果只是因为不知道本科毕业以后干什么，觉得“大家都考研，那我也考一个”，那就要非常谨慎了。希望每一个吉大人都能理解这一点再做关乎未来的重要决定。
+> **研究生本质上是一次需要计算投入产出比的人生选择。** 吉大的平台和考研环境完全支撑你这么做，但如果只是因为不知道本科毕业以后干什么，觉得“大家都考研，那我也考一个”，那就要非常谨慎了。希望每一个吉大人都能理解这一点再做关乎未来的重要决定。
 
 ---
 
@@ -107,8 +112,6 @@ https://b23.tv/83XR9Cv
 很好的升学道路，虽然性价比一般，但很适合那种能够长期坚持的做题王选手。在泥吉工科这个环境谨慎选择，不过也没多少人是奔着泥吉这幽默的保研率来的吧。
 
 问保研老前辈对于保研的评价，基本是信息差 ＞ 日常努力。多多善于搜索往年的信息，无论是期末的往年题，还是泥吉既定的很多加分策略。
-
-<img width="1170" height="1187" alt="923bd35835bae9a527ffb450d6972b39" src="https://github.com/user-attachments/assets/bcff1f02-6219-4f97-ad61-61a7f63f157a" />
 
 另外，保研群里区味真有点浓，有股人性本恶的偏执感，不多作评价。
 
@@ -130,8 +133,12 @@ https://b23.tv/83XR9Cv
 
 ---
 
+<a id="part-2"></a>
+
 <details>
-<summary><h3>2. 本科就业视角下应该卷什么 </h3></summary>
+<summary><h2>2. 本科就业视角下应该卷什么 </h2></summary>
+
+<br>
 
 ### 2.1 先定义我们的目标
 本科企业就业方向也是非常非常多的，卷互联网大厂，走央国企，冲量化金融，走制造业，卷硬件，去AI新兴龙头等等等等。
@@ -184,7 +191,7 @@ https://b23.tv/83XR9Cv
 
 当然了大家一般也都是期末突击，同等必要时间内能多考点就多考点，自己看着也开心，绩点高了也不至于有坏处。
 
-**对于大一大二尚未确定方向的同学，你们时间还长，有着大把的时间去试错，这时绩点也承担着保留选择机会的作用，想卷就多卷点，没关系，试错期这时候做任何事情都是对的。因为绩点放弃容易，之后万一又想补回来成本很高。**
+> **对于大一大二尚未确定方向的同学，你们时间还长，有着大把的时间去试错，这时绩点也承担着保留选择机会的作用，想卷就多卷点，没关系，试错期这时候做任何事情都是对的。因为绩点放弃容易，之后万一又想补回来成本很高。**
 
 ---
 
@@ -198,7 +205,7 @@ https://b23.tv/83XR9Cv
 ---
 
 ### 2.5 项目与八股
-可是第一份实习我什么都没有，怎么办呢？ **这时候最重要的就是你的项目。** 
+> 可是第一份实习我什么都没有，怎么办呢？ **这时候最重要的就是你的项目。** 
 
 简单理解，项目就是能展示你技术能力和思考的实现产物。一个项目往往可以体现你对于一个问题方方面面的思考深度，大厂尤其喜欢问这些而非技术实现本身。比如问技术就是问你这个xxx是怎么实现的，问思考就是问你是怎么选择了这种技术选型而非另一种。**这里注意的是，学校的任何课设作业都是绝对的电子垃圾，当不了找工作的项目。**
 
@@ -225,7 +232,7 @@ https://b23.tv/83XR9Cv
 
 #### 对于面试：
 大部分情况，我们算法只需要刷力扣平台上的“hot100”即可，然后再逐层向外扩宽扩深，去覆盖考察的小部分领域。综上，算法没必要刷太多，面试大部分属于提前告诉你题库，笔试又不看成绩，且在当下考察越发呈下降趋势。
-https://leetcode.cn/studyplan/
+> [`https://leetcode.cn/studyplan/`](https://leetcode.cn/studyplan/)
 
 建议尽早去刷，不是说一下你要刷几十几百道，太痛苦了，养成刷算法的习惯，每天一道两道，或者复习，这在2026哪怕考察趋势极速下降的当下也是极为有用的。
 
@@ -246,30 +253,34 @@ https://leetcode.cn/studyplan/
 
 ---
 
+<a id="part-3"></a>
+
 <details>
-<summary><h3>3. 可执行的本科就业实践路线</h3></summary>
+<summary><h2>3. 可执行的本科就业实践路线</h2></summary>
+
+<br>
 
 关于实习经历的具体卷法，以 java / go 后端为例其实网络上已经非常详尽了。
 
 这里强烈推荐直接省流看下面大家公认的"优雅0v0路线"去走，也算是吉 u 公认 **古法道路** 的最佳导师，每一分钟都是干货，视频看完基本能开智 8 成：
 
-https://www.bilibili.com/video/BV1Z1XQYmE1h
+> [`https://www.bilibili.com/video/BV1Z1XQYmE1h`](https://www.bilibili.com/video/BV1Z1XQYmE1h)
 
-https://www.bilibili.com/video/BV1EQE4zMEpP
+> [`https://www.bilibili.com/video/BV1EQE4zMEpP`](https://www.bilibili.com/video/BV1EQE4zMEpP)
 
-https://www.bilibili.com/video/BV1XmnJzyE5D
+> [`https://www.bilibili.com/video/BV1XmnJzyE5D`](https://www.bilibili.com/video/BV1XmnJzyE5D)
 
 以及省流文字版：
 
-https://my.feishu.cn/wiki/VVv1w0kCzirT04kmHwKc5PDWnBg
+> [`https://my.feishu.cn/wiki/VVv1w0kCzirT04kmHwKc5PDWnBg`](https://my.feishu.cn/wiki/VVv1w0kCzirT04kmHwKc5PDWnBg)
 
-https://my.feishu.cn/wiki/KNh5wPCxGi1qpYkK4nGcojabnDb
+> [`https://my.feishu.cn/wiki/KNh5wPCxGi1qpYkK4nGcojabnDb`](https://my.feishu.cn/wiki/KNh5wPCxGi1qpYkK4nGcojabnDb)
 
 这里可能会有人问，啊主播我现在已经大三上了按优雅路线是不是来不及了。别急，你炒肉多大三下开智都来得及弯道超车：
 
-https://www.bilibili.com/video/BV1rrVd6fEsm
+> [`https://www.bilibili.com/video/BV1rrVd6fEsm`](https://www.bilibili.com/video/BV1rrVd6fEsm)
 
-https://www.bilibili.com/video/BV1EhJu6kEZG
+> [`https://www.bilibili.com/video/BV1EhJu6kEZG`](https://www.bilibili.com/video/BV1EhJu6kEZG)
 
 视频实在过于详尽，非常推荐对就业云里雾里就先看完。我们下面少花笔墨，重点说一下在吉大内亲身经历的相关经验。
 
@@ -324,7 +335,7 @@ https://www.bilibili.com/video/BV1EhJu6kEZG
 
 我当时每天就是早上10点准时点开插件，boss免打扰，下午2点半定个闹钟依次回简历，有电话接电话，没电话就在鼎新学自己的。
 
-对于找第一段实习来说，不要怀疑自己，一定要海投，一定要海投，一定要海投。
+> 对于找第一段实习来说，不要怀疑自己，一定要海投，一定要海投，一定要海投。
 
 
 ### 3.4 面试准备须知
@@ -371,8 +382,12 @@ https://www.bilibili.com/video/BV1EhJu6kEZG
 
 ---
 
+<a id="part-4"></a>
+
 <details>
-<summary><h3>4. 本科就业中的常见误区与决策错误</h3></summary>
+<summary><h2>4. 本科就业中的常见误区与决策错误</h2></summary>
+
+<br>
 
 ### 4.1 做题曲假努力思维
 开局就谈一下重量级问题。也是主播自己的来时路😡。
@@ -383,14 +398,14 @@ https://www.bilibili.com/video/BV1EhJu6kEZG
 
 为了保研？可上了研究生究竟是为了什么，这并不是终点啊，就像高中卷高考一样，高考完才发现人生刚刚开始。等读了研呢？我并不是说读研就一定是错的，在这里可以给你分享一下我的经历，我曾经一直是这种迷茫无助的思维，选择本科就业，偶然把找实习侥幸成功的经验发到社媒上，结果被很多吉大本xx研(还基本都是c9硕以上)的师兄请教，说实话这对当时做题区的我是震撼的。和这些前辈沟通，我才知道这些做题王甚至也是大部分都是选择了和本科生抢开发，以及向下兼容测试运维。能够把研究生上值得的竟然是少数人，大部分人依然是随波逐流往上做题，直到不得不面对就业时，发现泡沫破裂。
 
-https://xhslink.cn/o/6iftKUFkSZt 
+> [`https://xhslink.cn/o/6iftKUFkSZt`](https://xhslink.cn/o/6iftKUFkSZt) 
 
 这里只举例一个显著的例子。希望大家举一反三，优先做对自己真正有利的事情，切勿陷入无意义的优绩主义和做题思维中。
 
 ### 4.2 等准备好了才投递
 这种思维很正常，就是太把一场面试当回事了，但是完全没必要，闭眼直接投，直面什么都不会的约面压力。
 
-https://www.bilibili.com/video/BV1rrVd6fEsm
+> [`https://www.bilibili.com/video/BV1rrVd6fEsm`](https://www.bilibili.com/video/BV1rrVd6fEsm)
 
 直接看这个视频的第二定律，一定别准备好万事俱备再投递，我要是这么做了，也不可能现在的成果。
 
@@ -399,7 +414,7 @@ https://www.bilibili.com/video/BV1rrVd6fEsm
 ### 4.3 什么都想学
 计算机是纯粹的学海无涯，学不完的。发现我这个视频也能套，纯粹的第一性原理，
 
-https://www.bilibili.com/video/BV1rrVd6fEsm
+> [`https://www.bilibili.com/video/BV1rrVd6fEsm`](https://www.bilibili.com/video/BV1rrVd6fEsm)
 
 反而是另一个极端了，对于找工作没有用的一点也不学，反而极致好用有没有懂的。
 
@@ -410,7 +425,7 @@ https://www.bilibili.com/video/BV1rrVd6fEsm
 
 我算是AI维新派，了解一些底层是必要的，但是顽固的手写代码在当下的收益是越来越趋近于0了，希望不要对AI发展抱有一成不变的期望。
 
-https://xhslink.cn/o/7aS88LEgOUt
+> [`https://xhslink.cn/o/7aS88LEgOUt`](https://xhslink.cn/o/7aS88LEgOUt)
 
 一些建议，就是一定要多摸AI，多碰Agent。不说技术仅仅在当下面试对AI的使用能力都是常规问题了。能点开这个链接的我相信对于信息搜集能力不会有硬伤，目前国内llm和agent的能力都算道阻且长，且营销成分居多，建议还是付费体验海外llm能力为主。
 
@@ -422,7 +437,7 @@ https://xhslink.cn/o/7aS88LEgOUt
 再想想，再往上走走，别被远在自己实习范畴所能达到之下的公司截胡了，尽可能去拿到最大最优解。
 
 ### 4.6 All In实习转正
-前面似乎也说过一些，永远永远永远不要allin转正！永远不要allin转正！没hc再怎么样也没招，不吊着你让你考虑其他机会的mt还是挺好的，这会儿就可以安心准备秋招了。但真有画饼不顾及你未来前途的mt，千万谨慎。
+> 前面似乎也说过一些，永远永远永远不要allin转正！永远不要allin转正！没hc再怎么样也没招，不吊着你让你考虑其他机会的mt还是挺好的，这会儿就可以安心准备秋招了。但真有画饼不顾及你未来前途的mt，千万谨慎。
 
 我从头到尾都被ld承诺有hc给转正，往年还都是100%转正，结果最后直接 5 进 2。
 
@@ -443,9 +458,9 @@ https://xhslink.cn/o/7aS88LEgOUt
 ---
 
 <details>
-<summary><h3>后记</h3></summary>
+<summary><h2>后记</h2></summary>
 
-
+<br>
 
 </details>
 
