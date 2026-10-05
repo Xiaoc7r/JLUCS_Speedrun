@@ -48,7 +48,7 @@
 
 <img width="600" height="412" alt="f461b35164673b28e31d9169a0c24113" src="https://github.com/user-attachments/assets/42a425ae-d9e5-4a6d-920a-f0dbfc7c96ba" />
 
-*泥吉计院考研某抽样统计去向，据25吉大升上交群友评价：表内数据肯定拉了，现实要更好一些。
+*泥吉计院真实统计去向，据25吉大升上交群友评价：表内数据比他那年还拉了现实更好一些。
 
 <br>
 
