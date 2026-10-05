@@ -329,8 +329,6 @@
 
 </details>
 
-<br>
-
 
 ---
 
@@ -520,8 +518,6 @@ https://chromewebstore.google.com/detail/boss海投助手/ngmdahaccemclbokmkhbdb
 
 </details>
 
-<br>
-
 ---
 
 <a id="part-4"></a>
@@ -655,25 +651,13 @@ codex多少买个plus玩一玩，我已经连续付费用一年多了，每月10
 
 补充提issue，催更xxiaocr@gmail.com
 
-<br>
 
 </details>
 
 ---
 
 <details>
-<summary><h2>后记</h2></summary>
-
-
-
-
-
-<br>
-
-</details>
-
-
-## 联系
+<summary><h2>联系</h2></summary>
 
 吉大兄弟姐妹若有问题，请随时联系。
 
@@ -682,3 +666,10 @@ codex多少买个plus玩一玩，我已经连续付费用一年多了，每月10
 邮箱：[xxiaocr@gmail.com](mailto:xxiaocr@gmail.com)
 
 对就业感兴趣也可以邮箱留微信，验证后拉吉大专门的就业交流群。
+
+<br>
+
+</details>
+
+
+
